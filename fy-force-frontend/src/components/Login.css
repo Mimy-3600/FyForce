@@ -1,0 +1,145 @@
+:root {
+
+  --bg: #030712;
+  
+  --card: #000000e0;
+  --border: 1px solid rgba(233, 221, 129, 0.836);
+  
+
+  --primary: #b2d476;
+  --primary-glow: white; 
+  
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+}
+
+.glass-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 400px;
+  padding: 2.2rem;
+  background: var(--card); 
+  border-radius: 20px;
+  margin: 0 auto;
+  /* border: var(--border); */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.auth-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* --- Effet label --- */
+
+input{
+  border: 0;
+  border-bottom: 1px solid white;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* etiquette iniltial au bordure*/
+.input-group label {
+  position: absolute;
+  left: 12px;
+  top: -10px; 
+  background: #ffffff;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  color: var(--primary-glow);
+  pointer-events: none; 
+  transition: all 0.2s ease; 
+  /*border-radius: 4px;*/
+}
+
+/* postion label initial*/
+.input-group input:placeholder-shown + label {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+/* effet label remonter */
+.input-group input:focus + label {
+  top: -10px;
+  transform: translateY(0);
+  font-size: 0.75rem;
+  color: var(--primary-glow);
+  background: var(--card);
+}
+
+/*----bouton----*/
+
+.btn-primary {
+  width: 100%;
+  padding: 0.8rem;
+  background: #f2bb13; 
+  border: none;
+  border-radius: 10px;  
+  color: black;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-glow);
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+.auth-header{
+  margin-bottom: 2rem;
+}
