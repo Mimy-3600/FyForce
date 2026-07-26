@@ -1,0 +1,16 @@
+.main-container {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+
+	top: 0;
+	left: 0;
+
+	background-color: #090c13;
+
+	background-image: 
+		radial-gradient(circle at 50%, rgba(236, 72, 153, 0.4) 0px, transparent 50%),
+	    radial-gradient(circle, rgba(6, 182, 212, 0.4) 0px, transparent 50%),
+	    radial-gradient(circle, rgba(168, 85, 247, 0.4) 0px, transparent 50%)
+	;
+}

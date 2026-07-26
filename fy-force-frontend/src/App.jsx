@@ -3,6 +3,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
 import LeaderBoard from "./components/Leaderboard/LeaderBoard";
 import Header from "./components/shared/Header";
+import Path from "./views/Path";
 
 // Composants temporaires pour éviter les erreurs si les fichiers n'existent pas encore
 const Home = () => <div>Page d'accueil</div>;
@@ -50,6 +51,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/leaderBoard" element={<LeaderBoard />} />
+        <Route path="/path" element={<Path />}/>
       </Routes>
     </main>
   );
