@@ -10,6 +10,7 @@ import GenPath from "./components/GeneratePath/GenPath";
 import Menu from "./components/Menu/Menu";
 import Craft from "./components/Craft/Craft";
 import Home from "./views/Home";
+import { saveSession, getCurrentUser } from "./services/auth"; // adapte le chemin si besoin
 
 const initialLessons = [
   {
@@ -38,16 +39,42 @@ const initialLessons = [
   }
 ];
 
+// Doit matcher la forme renvoyée par le backend mocké (login.js)
+const MOCK_USER = {
+  EMAIL_USER: "andry.paul@eni-fianar.mg",
+  NOM_USER: "Paul",
+  PRENOM_USER: "Andry",
+  PHOTO_USER: null,
+};
+const MOCK_TOKEN = "mock-token-dev-only";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const navigate = useNavigate();
+
+  // Réhydrate la session depuis le localStorage au chargement
+  useEffect(() => {
+    const savedUser = getCurrentUser();
+    if (savedUser) {
+      setUser(savedUser);
+    }
+  }, []);
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setShowWelcome(true);
     navigate("/");
   };
+
+  // Mock : simule une connexion réussie et la persiste dans le localStorage (dev uniquement)
+  useEffect(() => {
+    if (import.meta.env.DEV && !getCurrentUser()) {
+      saveSession(MOCK_TOKEN, MOCK_USER);
+      handleLoginSuccess(MOCK_USER);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (showWelcome) {
@@ -66,7 +93,7 @@ export default function App() {
       {showWelcome && user && (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
-            <h1 className="auth-title">Bienvenue, {user?.name || user?.email}</h1>
+            <h1 className="auth-title">Bienvenue, {user?.PRENOM_USER || user?.EMAIL_USER}</h1>
             <p className="auth-subtitle">Ravi de te revoir !</p>
           </div>
         </div>
@@ -74,7 +101,6 @@ export default function App() {
 
       <div style={styles.content}>
         <Routes>
-          {/* Menu accessible directement, plus besoin d'être connecté */}
           <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/learning/:idLesson" element={<Learning lessonsData={initialLessons} />} />
@@ -83,7 +109,6 @@ export default function App() {
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/genPath" element={<GenPath />} />
           <Route path="/craft" element={<Craft />} />
-          {/* /login reste accessible librement, sans redirection forcée */}
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </div>
