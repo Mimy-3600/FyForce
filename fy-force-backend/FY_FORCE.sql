@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : dim. 26 juil. 2026 à 09:12
+-- Généré le : dim. 26 juil. 2026 à 16:05
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -211,7 +211,7 @@ INSERT INTO `lecon` (`ID_LECON`, `NOM_LECON`, `TERMINE`) VALUES
 CREATE TABLE `module` (
   `ID_MODULE` int(11) NOT NULL,
   `NOM_MODULE` varchar(128) NOT NULL,
-  `CONTENU_MODULE` varchar(128) NOT NULL,
+  `CONTENU_MODULE` varchar(600) NOT NULL,
   `NIVEAU_MODULE` int(1) NOT NULL,
   `FINI` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
