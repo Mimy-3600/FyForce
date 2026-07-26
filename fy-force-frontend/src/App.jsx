@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
 import Learning from "./components/Learning";
 
@@ -27,6 +28,14 @@ const initialLessons = [
     ]
   }
 ];
+import LeaderBoard from "./components/Leaderboard/LeaderBoard";
+import Header from "./components/shared/Header";
+import Path from "./views/Path";
+
+// Composants temporaires pour éviter les erreurs si les fichiers n'existent pas encore
+const Home = () => <div>Page d'accueil</div>;
+const About = () => <div>À propos</div>;
+const Contact = () => <div>Contact</div>;
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -37,11 +46,13 @@ export default function App() {
     setCurrentView('welcome');
   };
 
-  // timer 1s
+  // Minuteur de 1 seconde pour le message d'accueil
   useEffect(() => {
     if (currentView === 'welcome') {
       const timer = setTimeout(() => {
         setCurrentView('learning');
+        setShowWelcome(false);
+        setUser(null);
       }, 1000);
       return ()=> clearTimeout(timer);
     }
@@ -54,6 +65,11 @@ export default function App() {
       )}
 
       {currentView === 'welcome' && (
+    <main >
+        <Header/>
+
+      {/* Affichage du message de bienvenue ou du formulaire*/}
+      {showWelcome ? (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
             <h1 className="auth-title">Bienvenue, {user?.name}</h1>
@@ -65,6 +81,16 @@ export default function App() {
       {currentView === 'learning' && (
         <Learning lessonsData={initialLessons} />
       )}
+      ) : (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )} */}
+
+      {/* Configuration des routes */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/leaderBoard" element={<LeaderBoard />} />
+        <Route path="/path" element={<Path />}/>
+      </Routes>
     </main>
   );
 }
@@ -87,8 +113,22 @@ const styles = {
     backgroundColor: 'var(--bg-primary)', 
     padding: '2rem',
     color: '#f9fafb',
+  container: {
+    minHeight: "100vh",
+    width: "100%",
+    backgroundColor: "var(--bg-primary)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1rem",
+    color: "#f9fafb",
+    fontFamily: "system-ui, sans-serif",
   },
   welcomeCard: {
-    textAlign: 'center'
-  }
+    textAlign: "center",
+  },
+  nav: {
+    marginBottom: "1rem",
+  },
 };

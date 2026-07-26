@@ -1,0 +1,203 @@
+.profile {
+	background-color: #f9f9f9;
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding: 10px;
+	align-content: center;
+	place-items: center;
+}
+
+.profile-container {
+	background-color: #ffffff;
+	border-radius: 10px;
+	height: 650px;
+	width: 90%;
+	display: flex;
+	padding: 20px;
+}
+
+.profile-container-account {
+	width: 400px;
+	height: 650px;
+	align-items: center;
+	justify-items: center;
+	align-content: center;
+}
+
+.profile-container-account-image {
+	height: 300px;
+	width: 300px;
+	background-color: #ffffff;
+	border: 4px solid #fccc54;
+	border-radius: 50%;
+	align-content: center;
+	place-items: center;
+}
+
+.profile-container-account-image-img {
+	height: 286px;
+	width: 286px;
+	border: 4px solid black;
+	border-radius: 50%;
+	align-content: center;
+    text-align: center;
+}
+
+.profile-container-account-image-img img {
+	border-radius: 50%;
+	width: 286px;
+	height: 286px;
+}
+
+.profile-container-item-button {
+	border: none;
+	height: 50px;
+	width: 50px;
+	border-radius: 50%;
+	background-color: #d3d4ff;
+	border: 10px solid #f9f9ff ;
+	position: absolute;
+	text-align: center;
+	align-content: center;
+	cursor: pointer;
+	transform: translateY(-100px);
+	top: 340px;
+}
+
+.profile-container-item-button-artifact {
+	border: none;
+	height: 50px;
+	width: 50px;
+	border-radius: 50%;
+	background-color: #ffccd0;
+	border: 10px solid #ffeef0 ;
+	position: absolute;
+	text-align: center;
+	align-content: center;
+	cursor: pointer;
+	transform: translateY(-100px);
+	top: 340px;
+}
+
+.profile-container-item-name {
+	width: 100%;
+	height: 100px;
+	text-align: center;
+	margin-top: 10px;
+}
+
+.profile-container-item-name .name {
+	font-size: 30px;
+	font-family: nunitoSemiBold;
+	color: #070069;
+}
+
+.profile-container-item-name .firstname {
+	font-size: 12px;
+	color: #7a7a7a;
+}
+
+.profile-container-xp {
+	height: 40px;
+	width: 100%;
+	display: flex;
+}
+
+.profile-container-prev, .profile-container-next {
+	height: 40px;
+	width: 60px;
+	place-content: center;
+    text-align: center
+}
+
+.profile-xp-bar {
+	flex: 1;
+	padding: 10px;
+}
+
+.profile-xp-bar-void {
+	background-color: #e4e4e4;
+	height: 13px;
+	width: 100%;
+	border-radius: 20px;
+	align-content: center;
+}
+
+.profile-xp-bar-fill {
+	background-color: #fccc54;
+	box-shadow: 0px 0px 0px 10px #fccc5444;
+	height: 13px;
+	width: 0px;
+	border-radius: 20px;
+}
+
+.profile-container-stats {
+	height: 70px;
+	width: 100%;
+	display: flex;
+	gap: 10px;
+	margin-top: 30px;
+}
+
+.profile-container-stats-match, .profile-container-stats-victory, .profile-container-stats-defaite {
+	flex: 1;
+	height: 70px;
+	border-radius: 5px;
+	text-align: center;
+	padding: 10px;
+}
+
+.profile-container-stats-match {
+	background-color: #dee0ff;
+}
+
+.profile-container-stats-victory {
+	background-color: #deffe0;
+}
+
+.profile-container-stats-defaite {
+	background-color: #ffeef0;
+}
+
+.profile-container-stats-match .title{
+	color: #7964ff;
+}
+
+.profile-container-stats-victory .title{
+	color: #6bc561;
+}
+
+.profile-container-stats-defaite .title{
+	color: #fc5271;
+}
+
+.profile-container-stats-match .count{
+	font-size: 30px;
+	font-family: nunitoSemiBold;
+	color: #7964ff;
+}
+
+.profile-container-stats-victory .count{
+	font-size: 30px;
+	font-family: nunitoSemiBold;
+	color: #6bc561;
+}
+
+.profile-container-stats-defaite .count{
+	font-size: 30px;
+	font-family: nunitoSemiBold;
+	color: #fc5271;
+}
+
+.profile-container-hall {
+	background-color: #ffffff;
+	flex: 1;
+	height: 650px;
+	margin-left: 30px;
+	border-radius: 5px;
+	border-left: 7px solid #00000011;
+}
+
