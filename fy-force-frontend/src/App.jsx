@@ -7,7 +7,6 @@ import Header from "./components/shared/Header";
 import Path from "./views/Path";
 import Inventory from "./components/Inventory/Inventory";
 import GenPath from "./components/GeneratePath/GenPath";
-import Footer from "./components/shared/Footer";
 import Menu from "./components/Menu/Menu";
 import Craft from "./components/Craft/Craft";
 
