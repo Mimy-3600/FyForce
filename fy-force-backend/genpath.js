@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import {GoogleGenAI} from '@google/genai'
 import mysql from 'mysql2/promise';
 
@@ -18,7 +19,7 @@ async function generer(theme){
     let prompt = `
     Génère un cours sur le thème "${theme}". 
     Retourne un tableau d'objets JSON représentant les modules. 
-    Chaque module contient un "nom", un "contenu", et un objet "quiz".
+    Chaque module contient un "nom", un "contenu", un "niveau_difficulte" (Choisis seulement entre 1 et 5 où 1 est le plus bas niveau/facile) et un objet "quiz".
     L'objet "quiz" doit avoir un "titre" et un tableau "questions".
     Chaque question a un "libelle" et un tableau "reponse".
     Chaque reponse a une "option" (texte) et un booléen "correct".
@@ -28,6 +29,7 @@ async function generer(theme){
       {
         "nom": "Introduction au routage",
         "contenu": "Texte explicatif...",
+        "niveau_difficulte": 1,
         "quiz": {
           "titre": "Quiz Routage",
           "questions": [
@@ -60,8 +62,8 @@ try{
 
     for (const m of modules_json) {
          const [repModule] = await connexion.execute(
-        'INSERT INTO MODULE (NOM_MODULE, CONTENU_MODULE, FINI) VALUES (?, ?, 0)',
-        [m.nom, m.contenu]
+        'INSERT INTO MODULE (NOM_MODULE, CONTENU_MODULE, NIVEAU_MODULE, FINI) VALUES (?, ?, ?, 0)',
+        [m.nom, m.contenu, m.niveau_difficulte]
       );
         const idModule = repModule.insertId;
 
@@ -122,4 +124,4 @@ try{
 }
 
 
-generer("Apprendre le java");//ty soloina arakarak le atsofok le USER
+generer("Apprendre le node js");//ty soloina arakarak le atsofok le USER
