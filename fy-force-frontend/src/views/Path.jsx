@@ -1,43 +1,214 @@
 import '../style/Path.css'
 import DotField from '../reactbits/DotField.jsx'
-import { useState } from 'react'
-import account from '../assets/account.jpeg'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import TextType from '@/components/TextType'
+import { getCurrentUser } from '../services/auth'
 
-function Path() {
-	const [ projectName, setProjectName ] = useState("Lamposcha")
+export default function Path() {
+  const navigate = useNavigate();
 
-	return <div className="path">
-		<div className="path-container">
-			<div className="path-container-account">
-				<div className="path-container-project">
-					<svg width="25px" height="25px" style={{transform: 'translateY(-2px)'}}viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<path fillRule="evenodd" clipRule="evenodd" d="M12 1.25C11.3953 1.25 10.8384 1.40029 10.2288 1.65242C9.64008 1.89588 8.95633 2.25471 8.1049 2.70153L6.03739 3.78651C4.99242 4.33487 4.15616 4.77371 3.51047 5.20491C2.84154 5.65164 2.32632 6.12201 1.95112 6.75918C1.57718 7.39421 1.40896 8.08184 1.32829 8.90072C1.24999 9.69558 1.24999 10.6731 1.25 11.9026V12.0974C1.24999 13.3268 1.24999 14.3044 1.32829 15.0993C1.40896 15.9182 1.57718 16.6058 1.95112 17.2408C2.32632 17.878 2.84154 18.3484 3.51047 18.7951C4.15613 19.2263 4.99233 19.6651 6.03723 20.2134L8.10486 21.2985C8.95628 21.7453 9.64008 22.1041 10.2288 22.3476C10.8384 22.5997 11.3953 22.75 12 22.75C12.6047 22.75 13.1616 22.5997 13.7712 22.3476C14.3599 22.1041 15.0437 21.7453 15.8951 21.2985L17.9626 20.2135C19.0076 19.6651 19.8438 19.2263 20.4895 18.7951C21.1585 18.3484 21.6737 17.878 22.0489 17.2408C22.4228 16.6058 22.591 15.9182 22.6717 15.0993C22.75 14.3044 22.75 13.3269 22.75 12.0975V11.9025C22.75 10.6731 22.75 9.69557 22.6717 8.90072C22.591 8.08184 22.4228 7.39421 22.0489 6.75918C21.6737 6.12201 21.1585 5.65164 20.4895 5.20491C19.8438 4.77371 19.0076 4.33487 17.9626 3.7865L15.8951 2.70154C15.0437 2.25472 14.3599 1.89589 13.7712 1.65242C13.1616 1.40029 12.6047 1.25 12 1.25ZM8.7708 4.04608C9.66052 3.57917 10.284 3.2528 10.802 3.03856C11.3062 2.83004 11.6605 2.75 12 2.75C12.3395 2.75 12.6938 2.83004 13.198 3.03856C13.716 3.2528 14.3395 3.57917 15.2292 4.04608L17.2292 5.09563C18.3189 5.66748 19.0845 6.07032 19.6565 6.45232C19.9387 6.64078 20.1604 6.81578 20.3395 6.99174L12 11.1615L3.66054 6.99174C3.83956 6.81578 4.06132 6.64078 4.34352 6.45232C4.91553 6.07032 5.68111 5.66747 6.7708 5.09563L8.7708 4.04608ZM2.93768 8.30736C2.88718 8.52125 2.84901 8.76412 2.82106 9.04778C2.75084 9.7606 2.75 10.6644 2.75 11.9415V12.0585C2.75 13.3356 2.75084 14.2394 2.82106 14.9522C2.88974 15.6494 3.02022 16.1002 3.24367 16.4797C3.46587 16.857 3.78727 17.1762 4.34352 17.5477C4.91553 17.9297 5.68111 18.3325 6.7708 18.9044L8.7708 19.9539C9.66052 20.4208 10.284 20.7472 10.802 20.9614C10.9656 21.0291 11.1134 21.0832 11.25 21.1255V12.4635L2.93768 8.30736ZM12.75 21.1255C12.8866 21.0832 13.0344 21.0291 13.198 20.9614C13.716 20.7472 14.3395 20.4208 15.2292 19.9539L17.2292 18.9044C18.3189 18.3325 19.0845 17.9297 19.6565 17.5477C20.2127 17.1762 20.5341 16.857 20.7563 16.4797C20.9798 16.1002 21.1103 15.6494 21.1789 14.9522C21.2492 14.2394 21.25 13.3356 21.25 12.0585V11.9415C21.25 10.6644 21.2492 9.7606 21.1789 9.04778C21.151 8.76412 21.1128 8.52125 21.0623 8.30736L12.75 12.4635V21.1255Z" fill="#fff2"/>
-					</svg>
-					<div>{projectName}</div>
-				</div>
-				<div className="path-container-account-container">
-					<img src={account} alt="account" style={{width: 45, height: 45, borderRadius: '50%', transform:'translateY(3px)'}}/>
-				</div>
-			</div>
+  const [user, setUser] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [progress, setProgress] = useState(null);
+  const [nextModules, setNextModules] = useState({});
+  const [loading, setLoading] = useState(true);
 
-			<div className="path-container-chart">
-				<DotField
-				    dotRadius={1.5}
-				    dotSpacing={40}
-				    bulgeStrength={16}
-				    glowRadius={50}
-				    sparkle={false}
-				    waveAmplitude={0}
-				    cursorRadius={500}
-				    cursorForce={0.01}
-				    bulgeOnly
-				    gradientFrom="#e2ffda"
-				    gradientTo="#B497CF"
-				    glowColor="#120F17"
-				/>
-			</div>
-		</div>
-	</div>
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    const userEmail = currentUser?.EMAIL_USER || currentUser?.email;
+
+    if (!userEmail) {
+      console.warn("Aucun email utilisateur trouvé en session.");
+      setLoading(false);
+      return;
+    }
+
+    setUser(currentUser);
+
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        const [resLessons, resProgress] = await Promise.all([
+          fetch(`http://localhost:3000/api/lesson/user/${userEmail}`),
+          fetch(`http://localhost:3000/api/lesson/progress/${userEmail}`)
+        ]);
+
+        const dataLessons = await resLessons.json();
+        const dataProgress = await resProgress.json();
+
+        if (resLessons.ok && Array.isArray(dataLessons.data)) {
+          setLessons(dataLessons.data);
+
+          const modulesMap = {};
+          await Promise.all(
+            dataLessons.data.map(async (lec) => {
+              try {
+                const resMod = await fetch(`http://localhost:3000/api/lesson/${lec.ID_LECON}/next-module`);
+                const dataMod = await resMod.json();
+                if (resMod.ok && dataMod.data) {
+                  modulesMap[lec.ID_LECON] = dataMod.data;
+                }
+              } catch (e) {
+                console.error(`Erreur module leçon ${lec.ID_LECON}:`, e);
+              }
+            })
+          );
+          setNextModules(modulesMap);
+        }
+
+        if (resProgress.ok) {
+          setProgress(dataProgress.data);
+        }
+
+      } catch (err) {
+        console.error("Erreur lors de la récupération des données :", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-700 font-medium relative z-10">Chargement de votre carte d'apprentissage...</div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="p-8 text-center text-gray-800 relative z-10 flex flex-col items-center justify-center min-h-screen">
+        <p className="mb-4 text-lg font-medium">Veuillez vous connecter pour accéder à votre parcours.</p>
+        <button 
+          onClick={() => navigate('/login')} 
+          className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold transition-all shadow-md cursor-pointer"
+        >
+          Se connecter
+        </button>
+      </div>
+    );
+  }
+
+  const displayName = `${user.PRENOM_USER || ''} ${user.NOM_USER || ''}`.trim() || user.EMAIL_USER;
+
+  return (
+    <div className="path flex items-center justify-center min-h-screen relative bg-slate-50">
+      <div className="path-container w-full max-w-6xl mx-auto p-4 pt-10 z-10 relative">
+        
+        {/* Entête Éclaircie */}
+        <div className="path-header mb-8 text-center">
+          <div className="text-white font-bold text-2xl">
+            <TextType 
+              text={[`Bienvenue ${displayName}`, "Carte de progression", "Sélectionnez un nœud pour continuer"]}
+              typingSpeed={65}
+              pauseDuration={1500}
+              showCursor
+              cursorCharacter="_"
+            />
+          </div>
+          
+          {progress && (
+            <div className="flex justify-center items-center gap-6 mt-3 bg-white/10 backdrop-blur-md px-5 py-2 rounded-full border border-gray-200 shadow-sm w-fit mx-auto text-xs">
+              <span className="text-white font-medium">Leçons : <strong className="text-white">{progress.LECONS_TERMINEES}/{progress.TOTAL_LECONS}</strong></span>
+              <span className="text-amber-600 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                {progress.POURCENTAGE} Complété
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* CARTE CODINGAME (Style Clair comme le vrai site) */}
+        <div className="codingame-map-wrapper relative overflow-x-auto p-8 rounded-2xl bg-white/1 shadow-xl backdrop-blur-md custom-scrollbar">
+          
+          <div className="codingame-nodes-grid flex flex-wrap justify-center items-center gap-x-12 gap-y-16 min-w-[700px] py-6">
+            
+            {lessons.map((lec, index) => {
+              const isFinished = lec.TERMINE === 1;
+              const moduleActif = nextModules[lec.ID_LECON];
+              const isLast = index === lessons.length - 1;
+
+              const nodeStyle = isFinished 
+                ? 'node-orange' 
+                : moduleActif 
+                ? 'node-red' 
+                : 'node-gray';
+
+              return (
+                <div key={lec.ID_LECON} className="node-item flex items-center relative group overflow-y-hidden">
+                  
+                  <div className="flex flex-col items-center">
+                    
+                    <button
+                      onClick={() => navigate(`/learning/${lec.ID_LECON}`)}
+                      className={`cg-node-btn ${nodeStyle}`}
+                      title={lec.NOM_LECON}
+                    >
+                      <div className="cg-node-inner">
+                        {isFinished ? (
+                          <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                          </svg>
+                        ) : moduleActif ? (
+                          <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+
+                    <div className="cg-node-label mt-3 text-center">
+                      <span className="text-[11px] font-black tracking-wider uppercase text-white block max-w-[110px] truncate">
+                        {lec.NOM_LECON}
+                      </span>
+                      {moduleActif && !isFinished && (
+                        <span className="text-[9px] font-bold text-amber-600 block truncate max-w-[110px]">
+                          {moduleActif.NOM_MODULE}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!isLast && (
+                    <div className={`cg-connector-line ${
+                      isFinished 
+                        ? 'line-orange' 
+                        : moduleActif 
+                        ? 'line-dotted' 
+                        : 'line-gray'
+                    }`} />
+                  )}
+
+                </div>
+              );
+            })}
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Fond DotField ajusté en couleurs claires */}
+      <div className="path-container-chart absolute inset-0 z-0 pointer-events-none opacity-40">
+        <DotField
+          dotRadius={1.5}
+          dotSpacing={35}
+          bulgeStrength={16}
+          glowRadius={60}
+          sparkle={false}
+          waveAmplitude={0}
+          cursorRadius={400}
+          cursorForce={0.01}
+          bulgeOnly
+          gradientFrom="#3b82f6"
+          gradientTo="#f59e0b"
+          glowColor="#ffffff"
+        />
+      </div>
+    </div>
+  );
 }
-
-export default Path

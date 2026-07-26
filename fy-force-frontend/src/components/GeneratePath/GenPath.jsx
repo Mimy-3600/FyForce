@@ -2,8 +2,11 @@ import '../../style/Path.css'
 import { useState, useRef, useEffect } from 'react'
 import TextType from '../TextType'
 import { Pickaxe, Trash2, Plus, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom';
+
 
 export default function GenPath() {
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState([
     {
@@ -12,6 +15,7 @@ export default function GenPath() {
       content: "Bonjour ! Que souhaites-tu apprendre aujourd'hui ? Saisis un thème (ex: \"Apprends-moi les bases de Python\") et je générerai un plan à personnaliser."
     }
   ])
+  
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
@@ -93,35 +97,32 @@ export default function GenPath() {
     }
   }
   
-  // 3. Validation définitive du plan
-  const handleConfirmPlan = async () => {
-    if (!activePlan) return
-    setLoading(true)
-  
+  const handleConfirmPlan = async (msgIndex) => {
+    const targetPlan = messages[msgIndex].content;
+    setLoading(true);
+
     try {
       const res = await fetch('http://localhost:3000/api/lesson/save-custom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(activePlan)
-      })
-  
-      if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            type: 'text',
-            content: `Parcours "${activePlan.theme}" validé et créé en base de données avec succès !`
-          }
-        ])
-        setActivePlan(null) // Réinitialise la mémoire temporaire après validation
+        body: JSON.stringify({
+          theme: targetPlan.theme,
+          modules: targetPlan.modules
+        })
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.data?.idLecon) {
+        // Redirection directe vers la page de la leçon créée !
+        navigate(`/learning/${result.data.idLecon}`);
       }
     } catch (error) {
-      console.error('Erreur de sauvegarde :', error)
+      console.error('Erreur lors de la validation :', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // =========================================================================
   // 2. MODIFIER LE PLAN DANS LE CHAT
