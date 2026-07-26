@@ -9,8 +9,6 @@ router.post('/generate', lessonController.generateLesson);
 // Lister toutes les leçons d'un user
 router.get('/', lessonController.getAllLessons);
 
-
-
 // Progression d'un utilisateur
 router.get('/progress/:email', lessonController.getUserProgress);
 
