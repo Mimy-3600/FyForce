@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, Mail, Lock, User } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Camera } from "lucide-react";
 import './Login.css';
 
 export default function Login({ onLoginSuccess }) {
@@ -7,7 +7,8 @@ export default function Login({ onLoginSuccess }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    pswd: ''
+    pswd: '',
+    avatar: null
   });
 
   const handleChange = (e) => {
@@ -17,13 +18,28 @@ export default function Login({ onLoginSuccess }) {
     });
   };
 
+  const handleFileChange = (e) => {
+    const file= e.target.files[0];
+    if (file) {
+      const reader =  new FileReader();
+      reader.onloadend = ()=> {
+        setFormData((prev) => ({
+          ...prev,
+          avatar: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (onLoginSuccess) {
       onLoginSuccess({
         name: formData.name || 'Utilisateur',
-        email: formData.email
+        email: formData.email,
+        avatar: formData.avatar
       });
     }
   };
@@ -37,7 +53,33 @@ export default function Login({ onLoginSuccess }) {
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Nom (Affiché seulement si Inscription) */}
+
+        {/* Upload de photo en inscription */}
+        {isRegister && (
+          <div className="avatar-upload-group">
+            <label htmlFor="avatar-input" className="avatar-label">
+              {formData.avatar ? (
+                <img src={formData.avatar} alt="Aperçu photo" className="avatar-preview" />
+              ) : (
+                <div className="avatar-placeholder">
+                  <Camera size={24} />
+                  <span>Photo</span>
+                </div>
+              )}
+            </label>
+            <input 
+              type="file" 
+              id="avatar-input" 
+              name="avatar" 
+              accept="image/*" 
+              onChange={handleFileChange}
+              style={{ display: 'none' }} // On cache le champ système moche
+            />
+          </div>
+        )}
+
+
+        {/* nom */}
         {isRegister && (
           <div className="input-group" style={{position: 'relative'}}>
             <User style={{position: 'absolute', left: '10px', width: '20px', height: '20px', marginTop: '0.9rem'}}/>
@@ -96,7 +138,7 @@ export default function Login({ onLoginSuccess }) {
           <label htmlFor="pswd" style={{marginLeft: '1.5rem'}}>Mot de passe</label>
         </div>
         
-        <button type="submit" className="btn-primary">
+        <button type="submit" className="btn">
           {isRegister ? 'Créer un utilisateur' : 'Démarrer une session'}
           <ArrowRight size={16} />
         </button>

@@ -7,11 +7,12 @@
   
 
   --primary: #b2d476;
-  --primary-glow: white; 
+  --primary-glow: rgb(141, 137, 137); 
   
   --text: #f9fafb;
   --text-muted: #9ca3af;
 }
+
 
 .glass-card {
   position: relative;
@@ -22,8 +23,12 @@
   background: var(--card); 
   border-radius: 20px;
   margin: 0 auto;
-  /* border: var(--border); */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border-top: 1px solid white;
+}
+
+.glass-card:hover{
+  border-top: 1px solid #ffe084;
 }
 
 .auth-header {
@@ -59,7 +64,7 @@ input{
 .input-group input {
   width: 100%;
   padding: 0.85rem 1rem;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.4) ;
   border-radius: 10px;
   color: #ffffff;
   font-size: 0.9rem;
@@ -72,7 +77,7 @@ input{
   position: absolute;
   left: 12px;
   top: -10px; 
-  background: #ffffff;
+  background: var(--card);
   padding: 0 6px;
   font-size: 0.75rem;
   color: var(--primary-glow);
@@ -99,34 +104,21 @@ input{
   background: var(--card);
 }
 
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover, 
+.input-group input:-webkit-autofill:focus, 
+.input-group input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #030712 inset !important; /* Forcage en fond sombre */
+  -webkit-text-fill-color: #ffffff !important; /* Forcage ne fond  blanc */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /*----bouton----*/
-
-.btn-primary {
-  width: 100%;
-  padding: 0.8rem;
-  background: #f2bb13; 
-  border: none;
-  border-radius: 10px;  
-  color: black;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  opacity: 0.95;
-}
 
 .btn-link {
   background: none;
   border: none;
-  color: var(--primary-glow);
+  color: #fcefc7;
   cursor: pointer;
   font-size: 0.85rem;
   margin-top: 1rem;
@@ -137,9 +129,113 @@ input{
 
 .btn-link:hover {
   text-decoration: underline;
+  color: #afaa8f;
   opacity: 0.9;
+} 
+
+/* From Uiverse.io by nikk7007 */ 
+.btn {
+ --color: #f7cc4c;
+ --color2: #030712;
+ padding: 0.8em 1.75em;
+ background-color: transparent;
+ border-radius: 6px;
+ border: .3px solid var(--color);
+ transition: .5s;
+ position: relative;
+ overflow: hidden;
+ cursor: pointer;
+ z-index: 1;
+ font-weight: 300;
+ font-size: 17px;
+ font-family: 'Roboto', 'Segoe UI', sans-serif;
+ color: var(--color);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ margin: 0 auto;
+}
+
+.btn::after, .btn::before {
+ content: '';
+ display: block;
+ height: 100%;
+ width: 100%;
+ transform: skew(90deg) translate(-50%, -50%);
+ position: absolute;
+ inset: 50%;
+ left: 25%;
+ z-index: -1;
+ transition: .5s ease-out;
+ background-color: var(--color);
+}
+
+.btn::before {
+ top: -50%;
+ left: -25%;
+ transform: skew(90deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn:hover::before {
+ transform: skew(45deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn:hover::after {
+ transform: skew(45deg) translate(-50%, -50%);
+}
+
+.btn:hover {
+ color: var(--color2);
+}
+
+.btn:active {
+ filter: brightness(.7);
+ transform: scale(.98);
 }
 
 .auth-header{
   margin-bottom: 2rem;
 }
+
+/* --- Bouton Photo de Profil / Avatar --- */
+.avatar-upload-group {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.avatar-label {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px dashed var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.avatar-label:hover {
+  border-color: #f2bb13;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+

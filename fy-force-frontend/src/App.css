@@ -5,16 +5,17 @@
 }
 
 :root{
-  --bg-primary: #000000;
-  --text-main: #f8fafc;
+  /* Utilisé la même couleur sombre que dans Login.css */
+  --bg-primary: #030712; 
+  --text-main: #f9fafb;
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body{
+body {
   background-color: var(--bg-primary);  
-  color:var(--text-main);
+  color: var(--text-main);
   font-family: var(--font-family);
   min-height: 100vh;
   overflow-x: hidden;
-  line-height: 1.5
+  line-height: 1.5;
 }
