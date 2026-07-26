@@ -9,6 +9,7 @@ import Inventory from "./components/Inventory/Inventory";
 import GenPath from "./components/GeneratePath/GenPath";
 import Footer from "./components/shared/Footer";
 import Menu from "./components/Menu/Menu";
+import Craft from "./components/Craft/Craft";
 
 const initialLessons = [
   {
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/path" element={<Path />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/genPath" element={<GenPath />} />
+          <Route path="/craft" element={<Craft />} />
           <Route 
             path="/login" 
             element={user ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />} 

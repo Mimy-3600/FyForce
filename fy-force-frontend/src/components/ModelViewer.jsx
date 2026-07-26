@@ -1,47 +1,56 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export default function ModelViewer({ lesson, module, onToggleComplete }) {
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        async function fetchChatBotContents() {
+        async function fetchModuleContent() {
             setLoading(true);
 
             try {
-                const response = await fetch('/api/chatbot/generate-module', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        lessonTitle: lesson?.title,
-                        moduleTitle: module?.title
-                    })
-                });
+                console.log(module.id);
+                
+                // Récupération du module existant enregistré en BDD via son ID
+                const response = await fetch(`http://localhost:3000/api/lesson/module/${module.id}`);
                 const data = await response.json();
-                setContent(data.content);
-            } catch {
-                setContent("Erreur lors de la génération du contenu");
+
+                if (response.ok && data.data) {
+                    // On extrait le contenu enregistré en BDD (CONTENU_MODULE)
+                    setContent(data.data.CONTENU_MODULE || data.data.contenu || "Aucun contenu disponible pour ce module.");
+                } else {
+                    setContent("Impossible de charger le contenu du module.");
+                }
+            } catch (err) {
+                console.error("Erreur lors de la récupération du module :", err);
+                setContent("Erreur de connexion au serveur.");
             } finally {
                 setLoading(false);
             }
         }
-        
-        if (module) {
-            fetchChatBotContents();
+
+        if (module?.id) {
+            fetchModuleContent();
         }
-    }, [module, lesson]);
+    }, [module?.id]); // Ne re-déclenche le fetch que si l'ID du module change
+
+    if (!module) {
+        return <div className="module-content"><p>Veuillez sélectionner un module.</p></div>;
+    }
 
     return (
         <div className="module-content">
             <h3>{module.title}</h3>
             
             {loading ? (
-                <p>Chargement du contenu......</p>
+                <p>Chargement du contenu...</p>
             ) : (
-                <div className="body">{content}</div>
+                <div className="body" style={{ whiteSpace: 'pre-wrap' }}>
+                    {content}
+                </div>
             )}
 
-            {/* Marquage de module complet */}
+            {/* Bouton de confirmation de fin de module */}
             <button 
                 className={`btn-complete ${module.completed ? 'done' : ''}`}
                 onClick={onToggleComplete}
@@ -50,4 +59,4 @@ export default function ModelViewer({ lesson, module, onToggleComplete }) {
             </button>
         </div>
     );
-} 
+}

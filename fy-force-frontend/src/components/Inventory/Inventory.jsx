@@ -5,6 +5,7 @@ import { getCurrentUser, getToken } from '../../services/auth'
 import SpecularButton from '../SpecularButton';
 import { Pickaxe, Search } from 'lucide-react';
 import TextType from '../TextType';
+import { useNavigate } from 'react-router-dom';
 
 const TOTAL_SLOTS = 16;
 
@@ -14,6 +15,7 @@ function Path() {
   const [artefacts, setArtefacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,7 +159,7 @@ function Path() {
             autoAnimate={false}
             onClick={() => console.log('clicked')}
           >
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2' onClick={()=>navigate("/craft")} >
               Crafter
               <Pickaxe/> 
             </div>

@@ -1,5 +1,5 @@
 import  { useState } from "react";
-import { X } from 'lucide-react';
+// import { X } from 'lucide-react';
 
 export default function LessonList({ lessons, onSelectedModule, onDeleteLesson }) {
     const [openLessonId, setOpenLessonId] = useState(null);
@@ -22,7 +22,7 @@ export default function LessonList({ lessons, onSelectedModule, onDeleteLesson }
                             {lesson.title}
                         </button>
                         {/* Bouton de suppression de la leçon */}
-                        <button 
+                        {/* <button 
                             type="button"
                             className="btn-delete-lesson"
                             onClick={() => {
@@ -31,7 +31,7 @@ export default function LessonList({ lessons, onSelectedModule, onDeleteLesson }
                             title="Supprimer la leçon"
                         >
                              <X color="#b30000"/> 
-                        </button>
+                        </button> */}
                     </div>
 
                     {openLessonId === lesson.id && (
