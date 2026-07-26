@@ -1,7 +1,7 @@
-import Profile from "./views/Profile";
+import Path from "./views/Path";
 
 function App() {
-  return <Profile />
+  return <Path />
 }
 
 export default App;
