@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
+import LeaderBoard from "./components/Leaderboard/LeaderBoard";
+import Header from "./components/shared/Header";
+
+// Composants temporaires pour éviter les erreurs si les fichiers n'existent pas encore
+const Home = () => <div>Page d'accueil</div>;
+const About = () => <div>À propos</div>;
+const Contact = () => <div>Contact</div>;
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -10,12 +18,12 @@ export default function App() {
     setShowWelcome(true);
   };
 
-  // timer 1s
+  // Minuteur de 1 seconde pour le message d'accueil
   useEffect(() => {
     if (showWelcome) {
       const timer = setTimeout(() => {
         setShowWelcome(false);
-        setUser(null); 
+        setUser(null);
       }, 1000);
 
       return () => clearTimeout(timer);
@@ -23,7 +31,10 @@ export default function App() {
   }, [showWelcome]);
 
   return (
-    <main style={styles.container}>
+    <main >
+        <Header/>
+
+      {/* Affichage du message de bienvenue ou du formulaire
       {showWelcome ? (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
@@ -33,24 +44,34 @@ export default function App() {
         </div>
       ) : (
         <Login onLoginSuccess={handleLoginSuccess} />
-      )}
+      )} */}
+
+      {/* Configuration des routes */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/leaderBoard" element={<LeaderBoard />} />
+      </Routes>
     </main>
   );
 }
 
 const styles = {
   container: {
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: 'var(--bg-primary)', 
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '1rem',
-    color: '#f9fafb',
-    fontFamily: 'system-ui, sans-serif'
+    minHeight: "100vh",
+    width: "100%",
+    backgroundColor: "var(--bg-primary)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1rem",
+    color: "#f9fafb",
+    fontFamily: "system-ui, sans-serif",
   },
   welcomeCard: {
-    textAlign: 'center'
-  }
+    textAlign: "center",
+  },
+  nav: {
+    marginBottom: "1rem",
+  },
 };
