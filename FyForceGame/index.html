@@ -12,17 +12,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
-<!--
-  This file is intentionally build-step-free: React + a JSX-in-browser
-  transpiler (Babel standalone) are loaded from a CDN, so you can just
-  open this file directly in a browser tab. Fine for learning/local play;
-  for production you'd normally run this through a real bundler (Vite, etc).
--->
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
 
 const WS_URL = "ws://localhost:8080";
-const CLASH_MS = 700; // must match the CSS animation durations below
+const CLASH_MS = 700;
 
 function HpBar({ hp, maxHp }) {
   const pct = Math.max(0, (hp / maxHp) * 100);
@@ -36,32 +30,28 @@ function HpBar({ hp, maxHp }) {
   );
 }
 
-// which sprite animation should play this round, from the server's per-player action.
-// getting hit always wins — it interrupts whatever you were doing.
 function spriteClassFor(action, wasHit) {
   if (wasHit) return "sprite-hurt";
   if (!action) return null;
   if (action.move === "light") return "sprite-attack";
-  if (action.move === "heavy") return action.result === "fizzled" ? null : "sprite-attack";
+  if (action.move === "heavy") return action.result === "fizzled" ? null : "sprite-heavy";
   if (action.move === "block") return "sprite-block";
   if (action.move === "charge") return "sprite-charge";
   return null;
 }
 
-// the whole-tile movement (lunge forward / shake / pulse) is independent of
-// the sprite's own animation, so a fizzled heavy attack can still shake the tile
 function tileClassFor(action) {
   if (!action) return null;
   if (action.move === "light") return "attacking-tile";
   if (action.move === "heavy") return action.result === "fizzled" ? "fizzle-tile" : "attacking-tile heavy-move";
   if (action.move === "charge") return "charge-tile";
-  return null; // block holds its ground
+  return null;
 }
 
 function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
   const fallen = data.hp <= 0;
   const tileClasses = ["combatant", side, tileAnim].filter(Boolean).join(" ");
-  const spriteClasses = ["sprite", kind, fallen ? "fallen" : spriteAnim].filter(Boolean).join(" ");
+  const spriteClasses = ["sprite", kind, fallen ? "fallen" : (spriteAnim || "idle")].filter(Boolean).join(" ");
   return (
     <div className={tileClasses}>
       <div className="combatant-label">
@@ -84,7 +74,7 @@ function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
 function App() {
   const [connected, setConnected] = useState(false);
   const [playerId, setPlayerId] = useState(null);
-  const [state, setState] = useState(null);      // what's actually rendered
+  const [state, setState] = useState(null);
   const [anim, setAnim] = useState({ p1: null, p2: null, p1Hit: false, p2Hit: false });
   const [gameOver, setGameOver] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -111,8 +101,6 @@ function App() {
         setGameOver(false);
       } else if (msg.type === "state") {
         if (msg.actions) {
-          // both players locked in — play the clash animation first, and
-          // only swap in the new hp/round/lock state once it's finished
           pendingGameOverRef.current = false;
           setAnim({
             p1: msg.actions.p1 || null,
@@ -141,7 +129,6 @@ function App() {
     return () => ws.close();
   }, []);
 
-  // big fighting-game-style "ROUND N" call-out, fired whenever a new round begins
   useEffect(() => {
     if (!state) return;
     if (!(state.p1Connected && state.p2Connected)) {
@@ -156,7 +143,6 @@ function App() {
     }
   }, [state]);
 
-  // ticks once a second so the 30s lock-in countdown stays live
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -175,23 +161,44 @@ function App() {
 
   const bothConnected = state.p1Connected && state.p2Connected;
 
+  const myKind = playerId === 1 ? "knight" : "wizard";
+  const oppKind = playerId === 1 ? "wizard" : "knight";
+
   if (!bothConnected) {
     return (
       <div className="game">
         <h1>Fighter's Arena — You are Player {playerId}</h1>
         <div className="waiting-arena">
-          <div className="waiting-orb"></div>
-          <div className="waiting-title">Awaiting a challenger...</div>
-          <div className="waiting-sub">Share the link with a friend — the match starts the moment they arrive.</div>
+          <div className="waiting-side">
+            <div className="waiting-side-box floating">
+              <div className="waiting-side-picture">
+                <div className={"sprite " + myKind + " idle"}></div>
+              </div>
+            </div>
+            <div className="waiting-platform"></div>
+            <div className="waiting-side-label">You</div>
+          </div>
+          <div className="waiting-vs-col">
+            <div className="waiting-vs-text floating">VS</div>
+            <div className="waiting-platform"></div>
+          </div>
+          <div className="waiting-side">
+            <div className="waiting-side-box floating" style={{ animationDelay: '0.3s' }}>
+              <div className="waiting-side-picture" style={{ backgroundColor: '#1a1f2e', border: '2px dashed #5a8fdd55' }}>
+                <span style={{ color: '#5a8fdd55', fontSize: '14px', fontFamily: 'nunitoSemiBold' }}>?</span>
+              </div>
+            </div>
+            <div className="waiting-platform"></div>
+            <div className="waiting-side-label">Opponent</div>
+          </div>
         </div>
+        <div className="waiting-sub">Share the link with a friend — the match starts the moment they arrive.</div>
       </div>
     );
   }
 
   const me = playerId === 1 ? state.p1 : state.p2;
   const opp = playerId === 1 ? state.p2 : state.p1;
-  const myKind = playerId === 1 ? "knight" : "wizard";
-  const oppKind = playerId === 1 ? "wizard" : "knight";
   const myAction = playerId === 1 ? anim.p1 : anim.p2;
   const oppAction = playerId === 1 ? anim.p2 : anim.p1;
   const myHit = playerId === 1 ? anim.p1Hit : anim.p2Hit;
@@ -229,7 +236,7 @@ function App() {
         />
       </div>
 
-      {gameOver && <div className="over-banner">Match over — a new one starts automatically.</div>}
+      {gameOver && <div className="over-banner">Match over. </div>}
 
       <div className="buttons">
         <button className="light" disabled={locked || gameOver} onClick={() => sendMove("light")}>Light</button>
