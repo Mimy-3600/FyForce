@@ -1,4 +1,4 @@
-import ClassBox from "./classBox";
+import ClassBox from "./ClassBox";
 
 export default function TopThree({ topPlayers }) {
   return (
