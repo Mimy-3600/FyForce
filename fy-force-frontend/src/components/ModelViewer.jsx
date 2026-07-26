@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import QuizViewer from "./GeneratePath/QuizViewer";
 
 export default function ModelViewer({ lesson, module, onToggleComplete }) {
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showQuiz, setShowQuiz] = useState(false);
+    
 
     useEffect(() => {
         async function fetchModuleContent() {
@@ -56,6 +59,12 @@ export default function ModelViewer({ lesson, module, onToggleComplete }) {
                 onClick={onToggleComplete}
             >
                 {module.completed ? 'Marquer comme non terminé' : 'Marquer comme terminé'}
+                {showQuiz && (
+                <QuizViewer 
+                onClose={() => setShowQuiz(false)} 
+                onComplete={() => console.log("Quiz validé !")}
+                />
+            )}
             </button>
         </div>
     );

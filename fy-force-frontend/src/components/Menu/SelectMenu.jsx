@@ -4,16 +4,16 @@ import {
   Backpack, 
   BookOpen, 
   Swords, 
-  Brain 
+  Brain,
+  LogOut 
 } from "lucide-react";
-
-// Correction : déstructuration { onClose } avec casse respectée
+import { logout } from "../../services/auth"
 export default function SelectMenu({ onClose = () => {} }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const menuOptions = [
-    { id: "profile", label: "Profil", Icon: User, path: "/profile" },
+    // { id: "profile", label: "Profil", Icon: User, path: "/profile" },
     { id: "inventory", label: "Inventaire", Icon: Backpack, path: "/inventory" },
     { id: "lessons", label: "Leçons", Icon: BookOpen, path: "/path" },
     { id: "fight", label: "Combattre", Icon: Swords, path: "/fight" },
@@ -22,7 +22,19 @@ export default function SelectMenu({ onClose = () => {} }) {
 
   const handleNavigation = (path) => {
     navigate(path);
-    onClose(); // Appel de la fonction pour fermer le menu dans le Header
+    onClose();
+  };
+
+  // Gestion de la déconnexion
+  const handleLogout = () => {
+    if (typeof logout === "function") {
+      logout(); // Exécute le nettoyage de session/token
+    } else {
+      localStorage.clear(); // Sécurité au cas où la fonction logout différerait
+    }
+    
+    onClose();
+    navigate("/login"); // Redirige vers la page de connexion
   };
 
   return (
@@ -51,6 +63,18 @@ export default function SelectMenu({ onClose = () => {} }) {
             </button>
           );
         })}
+
+        {/* Séparateur */}
+        <div className="my-1 border-t border-slate-800/80" />
+
+        {/* Bouton Se déconnecter */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-transparent transition-all duration-200 cursor-pointer"
+        >
+          <LogOut className="w-4 h-4 text-rose-400" />
+          <span>Déconnexion</span>
+        </button>
       </nav>
     </div>
   );
