@@ -64,7 +64,7 @@ function Path() {
   const slots = Array.from({ length: TOTAL_SLOTS }, (_, index) => currentList[index] || null);
 
   return (
-    <div className="path relative min-h-screen w-full flex flex-col items-center justify-center gap-6 p-6 bg-slate-950">
+    <div className="path relative min-h-screen w-full flex flex-col items-center justify-center gap-6 p-6 mt-15 bg-slate-950">
       
       {/* Grille de fond décorative */}
       <div className="absolute inset-0 p-8 opacity-25 pointer-events-none grid grid-cols-4 md:grid-cols-8 gap-4">

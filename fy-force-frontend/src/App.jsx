@@ -78,7 +78,7 @@ export default function App() {
       <div style={styles.content}>
         <Routes>
           <Route path="/" element={<Menu />} />
-          <Route path="/learning" element={<Learning lessonsData={initialLessons} />} />
+          <Route path="/learning/:idLesson" element={<Learning lessonsData={initialLessons} />} />
           <Route path="/leaderBoard" element={<LeaderBoard />} />
           <Route path="/path" element={<Path />} />
           <Route path="/inventory" element={<Inventory />} />
@@ -87,10 +87,11 @@ export default function App() {
             path="/login" 
             element={user ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />} 
           />
+          {/* <Route path="/learning" */}
         </Routes>
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

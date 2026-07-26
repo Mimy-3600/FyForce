@@ -1,7 +1,7 @@
 import '../../style/Path.css'
 import { useState, useRef, useEffect } from 'react'
 import TextType from '../TextType'
-import { Pickaxe } from 'lucide-react'
+import { Pickaxe, Trash2, Plus, Check } from 'lucide-react'
 
 export default function GenPath() {
   const [prompt, setPrompt] = useState('')
@@ -9,13 +9,12 @@ export default function GenPath() {
     {
       role: 'assistant',
       type: 'text',
-      content: 'Bonjour ! Que souhaites-tu apprendre aujourd\'hui ? Saisis un thème (ex: "Apprends-moi les bases de Python") et je générerai un parcours personnalisé pour toi.'
+      content: "Bonjour ! Que souhaites-tu apprendre aujourd'hui ? Saisis un thème (ex: \"Apprends-moi les bases de Python\") et je générerai un plan à personnaliser."
     }
   ])
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // Scroll automatique vers le bas à chaque nouveau message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -24,67 +23,146 @@ export default function GenPath() {
     scrollToBottom()
   }, [messages, loading])
 
+  // =========================================================================
+  // 1. GENERER UN PLAN INITIAL (PREPARATION)
+  // =========================================================================
+  const [activePlan, setActivePlan] = useState(null)
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!prompt.trim() || loading) return
-
+  
     const userQuery = prompt.trim()
     setPrompt('')
-
-    // 1. Ajoute le message de l'utilisateur
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', type: 'text', content: userQuery }
-    ])
-
+  
+    // Ajoute le message utilisateur
+    const newMessages = [...messages, { role: 'user', type: 'text', content: userQuery }]
+    setMessages(newMessages)
     setLoading(true)
-
+  
     try {
-      // 2. Appel API pour générer la leçon
-      const genRes = await fetch('http://localhost:3000/api/lesson/generate', {
+      // On envoie le nouveau message, le plan actuel ET l'historique pour garder la mémoire
+      const res = await fetch('http://localhost:3000/api/lesson/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: userQuery })
+        body: JSON.stringify({ 
+          theme: userQuery,
+          currentPlan: activePlan, // Le plan déjà généré si présent
+          history: newMessages.map(m => ({ role: m.role, content: m.content })) // Historique de conversation
+        })
       })
-
-      const genData = await genRes.json()
-
-      if (!genData?.data?.idLecon) {
-        throw new Error('Impossible de récupérer l\'identifiant de la leçon.')
+  
+      const responseData = await res.json()
+      const updatedPlan = responseData?.data
+  
+      if (updatedPlan && updatedPlan.modules) {
+        // Mise à jour de la mémoire du plan dans l'état local
+        setActivePlan(updatedPlan)
+  
+        // Affichage du plan mis à jour dans le Chat
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            type: 'custom_plan',
+            content: updatedPlan
+          }
+        ])
+      } else {
+        // Si la réponse est un simple message explicatif sans modification du plan
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            type: 'text',
+            content: responseData.message || "Je n'ai pas pu modifier le plan. Peux-tu préciser ?"
+          }
+        ])
       }
-
-      const idLecon = genData.data.idLecon
-
-      // 3. Appel API pour récupérer les détails de la leçon
-      const lessonRes = await fetch(`http://localhost:3000/api/lesson/${idLecon}`)
-      const lessonData = await lessonRes.json()
-
-      // 4. Ajoute la réponse sous forme de carte interactive
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          type: 'lesson',
-          content: lessonData.data
-        }
-      ])
     } catch (error) {
-      console.error('Erreur lors de la génération :', error)
+      console.error('Erreur :', error)
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
           type: 'text',
-          content: 'Une erreur est survenue lors de la création de la leçon. Vérifie ton serveur backend et réessaie.'
+          content: 'Une erreur est survenue lors de la communication avec l\'assistant.'
         }
       ])
     } finally {
       setLoading(false)
     }
   }
+  
+  // 3. Validation définitive du plan
+  const handleConfirmPlan = async () => {
+    if (!activePlan) return
+    setLoading(true)
+  
+    try {
+      const res = await fetch('http://localhost:3000/api/lesson/save-custom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(activePlan)
+      })
+  
+      if (res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            type: 'text',
+            content: `Parcours "${activePlan.theme}" validé et créé en base de données avec succès !`
+          }
+        ])
+        setActivePlan(null) // Réinitialise la mémoire temporaire après validation
+      }
+    } catch (error) {
+      console.error('Erreur de sauvegarde :', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // =========================================================================
+  // 2. MODIFIER LE PLAN DANS LE CHAT
+  // =========================================================================
+  const handleUpdateModuleName = (msgIndex, moduleIdx, newName) => {
+    setMessages((prev) => {
+      const updated = [...prev]
+      const plan = { ...updated[msgIndex].content }
+      plan.modules[moduleIdx].nom = newName
+      updated[msgIndex].content = plan
+      return updated
+    })
+  }
+
+  const handleRemoveModule = (msgIndex, moduleIdx) => {
+    setMessages((prev) => {
+      const updated = [...prev]
+      const plan = { ...updated[msgIndex].content }
+      plan.modules = plan.modules.filter((_, idx) => idx !== moduleIdx)
+      updated[msgIndex].content = plan
+      return updated
+    })
+  }
+
+  const handleAddModule = (msgIndex) => {
+    setMessages((prev) => {
+      const updated = [...prev]
+      const plan = { ...updated[msgIndex].content }
+      plan.modules.push({
+        nom: "Nouveau module",
+        contenu: "Contenu du module à définir...",
+        niveau_difficulte: 1
+      })
+      updated[msgIndex].content = plan
+      return updated
+    })
+  }
+
 
   return (
-    <div className="flex flex-col h-screen w-full bg-slate-950 text-slate-100 font-sans pt-15" >
+    <div className="flex flex-col h-screen w-full bg-slate-950 text-slate-100 font-sans pt-15">
 
       {/* Zone de discussion */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 max-w-4xl mx-auto w-full">
@@ -98,10 +176,11 @@ export default function GenPath() {
 
             {/* Avatar Assistant */}
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-lg text-xs font-bold">
-                <Pickaxe/>
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg text-xs font-bold text-white">
+                <Pickaxe className="w-4 h-4" />
               </div>
             )}
+
             {/* Bulle de Message */}
             <div
               className={`max-w-[85%] rounded-2xl p-4 transition-all ${
@@ -111,59 +190,98 @@ export default function GenPath() {
               }`}
             >
               {msg.type === 'text' ? (
-               <TextType 
-               text={[msg.content]}
-               loop={false}
-               typingSpeed={10}
-             />
+                <TextType 
+                  text={[msg.content]}
+                  loop={false}
+                  typingSpeed={10}
+                />
               ) : (
-                /* Affichage structuré du résultat (Cartes de Leçon & Modules) */
-                <div className="space-y-4">
+                /* Plan personnalisable */
+                <div className="space-y-4 w-full">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div>
                       <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400">
-                        Parcours de Formation #{msg.content.ID_LECON}
+                        {msg.content.isConfirmed ? "Parcours Validé" : "Brouillon de Parcours"}
                       </span>
                       <h2 className="text-base font-bold text-white mt-0.5">
-                        {msg.content.NOM_LECON}
+                        {msg.content.theme}
                       </h2>
                     </div>
                     <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                      {msg.content.MODULES?.length || 0} Modules
+                      {msg.content.modules?.length || 0} Modules
                     </span>
                   </div>
 
+                  {/* Liste Éditable des Modules */}
                   <div className="grid gap-2.5">
-                    {msg.content.MODULES?.map((mod) => (
+                    {msg.content.modules?.map((mod, mIdx) => (
                       <div
-                        key={mod.ID_MODULE}
-                        className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex items-center justify-between group"
+                        key={mIdx}
+                        className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex items-center justify-between gap-3 group"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-mono text-indigo-300 border border-slate-700">
-                            N{mod.NIVEAU_MODULE}
+                        <div className="flex items-center gap-3 flex-1">
+                          <span className="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-mono text-indigo-300 border border-slate-700 shrink-0">
+                            N{mod.niveau_difficulte || 1}
                           </span>
-                          <span className="text-xs font-medium text-slate-200 group-hover:text-indigo-200 transition-colors">
-                            {mod.NOM_MODULE}
-                          </span>
+                          
+                          {msg.content.isConfirmed ? (
+                            <span className="text-xs font-medium text-slate-200">
+                              {mod.nom}
+                            </span>
+                          ) : (
+                            <input
+                              type="text"
+                              value={mod.nom}
+                              onChange={(e) => handleUpdateModuleName(idx, mIdx, e.target.value)}
+                              className="bg-transparent border-b border-slate-700 focus:border-indigo-400 text-xs text-slate-200 font-medium focus:outline-none w-full py-0.5"
+                            />
+                          )}
                         </div>
-                        
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          {mod.FINI ? "Terminé" : "En attente"}
-                        </span>
+
+                        {!msg.content.isConfirmed && (
+                          <button
+                            onClick={() => handleRemoveModule(idx, mIdx)}
+                            className="text-slate-500 hover:text-red-400 p-1 transition-colors"
+                            title="Supprimer ce module"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
+
+                  {/* Actions de Personnalisation */}
+                  {!msg.content.isConfirmed && (
+                    <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-800/60">
+                      <button
+                        onClick={() => handleAddModule(idx)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-all cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Ajouter un module
+                      </button>
+
+                      <button
+                        onClick={() => handleConfirmPlan(idx)}
+                        disabled={loading || msg.content.modules.length === 0}
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium shadow-md transition-all cursor-pointer disabled:opacity-40"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Valider ce parcours
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         ))}
 
-        {/* Indicateur de génération (Réfléchit...) */}
+        {/* Animation de chargement */}
         {loading && (
           <div className="flex gap-4 justify-start">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shrink-0 animate-pulse text-xs">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 animate-pulse text-xs text-white font-bold">
               ✨
             </div>
             <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl rounded-tl-none p-4 flex items-center gap-3">
@@ -173,7 +291,7 @@ export default function GenPath() {
                 <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" />
               </div>
               <span className="text-xs text-slate-400 font-mono">
-                Génération de la leçon en cours...
+                Traitement en cours...
               </span>
             </div>
           </div>
@@ -182,7 +300,7 @@ export default function GenPath() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Barre d'entrée Prompt (Style Gemini) */}
+      {/* Input utilisateur */}
       <div className="p-4 border-t border-slate-800/60 bg-slate-950">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative flex items-center">
           <input
