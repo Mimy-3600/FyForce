@@ -30,5 +30,14 @@ router.post('/complete-lesson', lessonController.completeLessonForUser);
 // Marquer un module comme fini
 router.put('/module/:id/complete', lessonController.completeModule);
 
+// 1. Génération & modification de brouillon avec mémoire IA
+router.post('/lesson/generate', lessonController.generateLesson);
+
+// 2. Enregistrement définitif du plan validé en BDD
+router.post('/lesson/save-custom', lessonController.saveCustomLesson);
+
+// 3. Récupération des quiz d'un utilisateur
+router.get('/users/:email/quizzes', lessonController.getUserQuizzes);
+
 export default router;
     

@@ -1,154 +1,287 @@
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
-import db from '../config/db.js'; 
+import db from '../config/db.js';
 
 const ia = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
 });
 
+// Types d'artefacts autorisés
+const TYPES_ARTEFACTS = ['EPEE', 'BOUCLIER', 'GRIMOIRE', 'AMULETTE'];
+
+/**
+ * Helper: Nombre d'artefacts (1 à 5) selon le niveau et la chance
+ */
+function getRandomArtefactCount(niveau) {
+  const chanceBonus = Math.floor(Math.random() * niveau);
+  const total = 1 + chanceBonus;
+  return Math.min(Math.max(total, 1), 5);
+}
+
+/**
+ * Helper: Génération des stats d'un artefact selon le niveau
+ */
+function generateArtefactStats(niveau) {
+  const randomType = TYPES_ARTEFACTS[Math.floor(Math.random() * TYPES_ARTEFACTS.length)];
+  const baseStat = niveau * 15;
+  const luckBonus = Math.floor(Math.random() * 15);
+
+  return {
+    code_type: randomType,
+    stat: baseStat + luckBonus
+  };
+}
+
 // =================================================================
-// 0. GENERER UNE LECON COMPLETA AVEC GEMINI (IA)
+// 1. GENERER OU MODIFIER UN BROUILLON DE PLAN (AVEC MEMOIRE IA)
 // =================================================================
 export const generateLesson = async (req, res) => {
-  const { theme } = req.body;
+  const { theme, currentPlan, history } = req.body;
 
-  if (!theme) {
-    return res.status(400).json({ message: "Le thème est obligatoire." });
+  if (!theme && !currentPlan) {
+    return res.status(400).json({ message: "Le thème ou un plan actuel est obligatoire." });
   }
 
-  // Prompt pour forcer la structure JSON exacte avec les modules et quiz
-  const prompt = `
-    Génère un cours sur le thème "${theme}". 
-    Retourne un tableau d'objets JSON représentant les modules. 
-    Chaque module contient un "nom", un "contenu", un "niveau_difficulte" (Choisis seulement entre 1 et 5) et un objet "quiz".
-    L'objet "quiz" doit avoir un "titre" et un tableau "questions".
-    Chaque question a un "libelle" et un tableau "reponse".
-    Chaque reponse a une "option" (texte) et un booléen "correct".
+  // Construction du prompt avec l'historique et le plan en cours
+  const systemContext = `
+    Tu es un assistant pédagogique expert. 
+    Ta mission est d'aider l'utilisateur à créer et personnaliser un parcours d'apprentissage.
 
-    Structure JSON attendue :
-    [
-      {
-        "nom": "Introduction",
-        "contenu": "Texte explicatif...",
-        "niveau_difficulte": 1,
-        "quiz": {
-          "titre": "Quiz Intro",
-          "questions": [
+    ${currentPlan ? `PLAN ACTUEL EN COURS DE MODIFICATION :
+    ${JSON.stringify(currentPlan, null, 2)}` : ''}
+
+    ${history && history.length > 0 ? `HISTORIQUE DE LA CONVERSATION :
+    ${JSON.stringify(history, null, 2)}` : ''}
+
+    CONSIGNES STRICTES :
+    1. Si l'utilisateur demande une modification (ex: "ajoute un chapitre", "supprime la partie 2", "rend le cours plus difficile"), adapte le plan.
+    2. Si l'utilisateur propose un nouveau sujet, génère un nouveau plan complet.
+    3. Tu dois impérativement retourner un objet JSON valide structuré comme suit :
+
+    {
+      "theme": "${currentPlan?.theme || theme}",
+      "modules": [
+        {
+          "nom": "Titre du module",
+          "contenu": "Contenu explicatif détaillé du module...",
+          "niveau_difficulte": 1,
+          "quizzes": [
             {
-              "libelle": "Question ?",
-              "reponse": [
-                { "option": "Choix A", "correct": true }
+              "titre": "Quiz d'évaluation",
+              "questions": [
+                {
+                  "libelle": "Question du quiz ?",
+                  "reponse": [
+                    { "option": "Option A", "correct": true },
+                    { "option": "Option B", "correct": false }
+                  ]
+                }
               ]
             }
           ]
         }
-      }
-    ]
+      ]
+    }
   `;
 
-  let connexion;
   try {
-    // 1. Appel à l'API Gemini
+    const prompt = `Demande de l'utilisateur : "${theme}"`;
+
     const reponse = await ia.models.generateContent({
       model: 'gemini-3.6-flash',
-      contents: prompt,
+      contents: [
+        { role: 'user', parts: [{ text: systemContext + '\n' + prompt }] }
+      ],
       config: { responseMimeType: "application/json" }
     });
 
-    const modules_json = JSON.parse(reponse.text);
+    const planGenere = JSON.parse(reponse.text);
 
-    // 2. Connexion et début de la transaction SQL unique
+    // On renvoie simplement le plan généré au front SANS toucher à la BDD
+    res.status(200).json({
+      message: "Plan généré ou mis à jour avec succès !",
+      data: planGenere
+    });
+
+  } catch (erreur) {
+    console.error("Erreur Gemini:", erreur);
+    res.status(500).json({ error: erreur.message });
+  }
+};
+
+// =================================================================
+// 2. SAUVEGARDER LE PARCOURS DÉFINITIF EN BDD (BOUTON VALIDER)
+// =================================================================
+export const saveCustomLesson = async (req, res) => {
+  const { theme, modules, email_user } = req.body;
+
+  if (!theme || !modules || !Array.isArray(modules)) {
+    return res.status(400).json({ message: "Données de la leçon incomplètes." });
+  }
+
+  let connexion;
+  try {
     connexion = await db.getConnection();
     await connexion.beginTransaction();
 
-    // 3. Insertion de la leçon
+    // 1. Insertion de la Leçon
     const [lec] = await connexion.execute(
       'INSERT INTO LECON (NOM_LECON, TERMINE) VALUES (?, 0)',
       [theme]
     );
     const idLecon = lec.insertId;
 
-    // 4. Parcourir les modules générés
-    for (const m of modules_json) {
-      // 4a. Insertion du module
+    // 2. Attribution de l'Item de fin de cours s'il y a un utilisateur
+    if (email_user) {
+      const [availableItems] = await connexion.execute(
+        `SELECT ID_ITEM FROM ITEM 
+         WHERE ID_ITEM NOT IN (SELECT ID_ITEM FROM RECEVOIR WHERE EMAIL_USER = ?)
+         ORDER BY RAND() LIMIT 1`,
+        [email_user]
+      );
+
+      let itemToGive = availableItems.length > 0 ? availableItems[0].ID_ITEM : 1;
+
+      await connexion.execute(
+        'INSERT IGNORE INTO RECEVOIR (ID_ITEM, EMAIL_USER) VALUES (?, ?)',
+        [itemToGive, email_user]
+      );
+    }
+
+    // 3. Boucle sur les modules validés par l'utilisateur
+    for (const m of modules) {
+      const niveau = m.niveau_difficulte || 1;
+
+      // 3a. Creation du Module
       const [repModule] = await connexion.execute(
-        'INSERT INTO MODULE (NOM_MODULE, CONTENU_MODULE, NIVEAU_MODULE, FINI) VALUES (?, ?, ?, 0)',
-        [m.nom, m.contenu, m.niveau_difficulte]
+        'INSERT INTO MODULE (NOM_MODULE, CONTENU_MODULE, FINI) VALUES (?, ?, 0)',
+        [m.nom, m.contenu || "Contenu de la leçon"]
       );
       const idModule = repModule.insertId;
 
-      // 4b. Liaison leçon <-> module (REGROUPER)
+      // 3b. Liaison Leçon <-> Module (REGROUPER)
       await connexion.execute(
         'INSERT INTO REGROUPER (ID_LECON, ID_MODULE) VALUES (?, ?)',
         [idLecon, idModule]
       );
 
-      // 4c. Insertion du quiz
-      const [repQuiz] = await connexion.execute(
-        'INSERT INTO QUIZ (TITRE_QUIZ) VALUES (?)',
-        [m.quiz.titre]
-      );
-      const idQuiz = repQuiz.insertId;
+      // 3c. Génération de 1 à 5 artefacts neutres selon la difficulté
+      const nbArtefacts = getRandomArtefactCount(niveau);
+      for (let i = 0; i < nbArtefacts; i++) {
+        const artStats = generateArtefactStats(niveau);
 
-      // 4d. Liaison module <-> quiz (GENERER)
-      await connexion.execute(
-        'INSERT INTO GENERER (ID_MODULE, ID_QUIZ) VALUES (?, ?)',
-        [idModule, idQuiz]
-      );
-
-      // 5. Parcourir les questions du quiz
-      for (const q of m.quiz.questions) {
-        // 5a. Insertion de la question
-        const [repQuestion] = await connexion.execute(
-          'INSERT INTO QUESTION (LIBELLE_QUESTION) VALUES (?)',
-          [q.libelle]
+        const [repArt] = await connexion.execute(
+          'INSERT INTO ARTEFACT (CODE_ARTEFACT, STAT_ARTEFACT) VALUES (?, ?)',
+          [artStats.code_type, artStats.stat]
         );
-        const idQuestion = repQuestion.insertId;
+        const idArtefact = repArt.insertId;
 
-        // 5b. Liaison question <-> quiz (UTILISER)
         await connexion.execute(
-          'INSERT INTO UTILISER (ID_QUESTION, ID_QUIZ) VALUES (?, ?)',
-          [idQuestion, idQuiz]
+          'INSERT INTO DROPPER (ID_MODULE, ID_ARTEFACT) VALUES (?, ?)',
+          [idModule, idArtefact]
+        );
+      }
+
+      // 3d. Insertion des Quiz s'ils existent
+      const quizzes = m.quizzes || (m.quiz ? [m.quiz] : []);
+      for (const qz of quizzes) {
+        const [repQuiz] = await connexion.execute(
+          'INSERT INTO QUIZ (TITRE_QUIZ) VALUES (?)',
+          [qz.titre || `Quiz - ${m.nom}`]
+        );
+        const idQuiz = repQuiz.insertId;
+
+        await connexion.execute(
+          'INSERT INTO GENERER (ID_MODULE, ID_QUIZ) VALUES (?, ?)',
+          [idModule, idQuiz]
         );
 
-        // 6. Parcourir les réponses possibles
-        for (const r of q.reponse) {
-          // 6a. Insertion de la réponse
-          const [answer] = await connexion.execute(
-            'INSERT INTO REPONSE (LIBELLE_REPONSE) VALUES (?)',
-            [r.option]
-          );
-          const idReponse = answer.insertId;
+        if (qz.questions && Array.isArray(qz.questions)) {
+          for (const q of qz.questions) {
+            const [repQuestion] = await connexion.execute(
+              'INSERT INTO QUESTION (LIBELLE_QUESTION) VALUES (?)',
+              [q.libelle]
+            );
+            const idQuestion = repQuestion.insertId;
 
-          // 6b. Liaison réponse <-> question (CORRESPONDRE)
-          await connexion.execute(
-            'INSERT INTO CORRESPONDRE (ID_REPONSE, ID_QUESTION, CORRECT) VALUES (?, ?, ?)',
-            [idReponse, idQuestion, r.correct ? 1 : 0]
-          );
+            await connexion.execute(
+              'INSERT INTO UTILISER (ID_QUESTION, ID_QUIZ) VALUES (?, ?)',
+              [idQuestion, idQuiz]
+            );
+
+            if (q.reponse && Array.isArray(q.reponse)) {
+              for (const r of q.reponse) {
+                const [answer] = await connexion.execute(
+                  'INSERT INTO REPONSE (LIBELLE_REPONSE) VALUES (?)',
+                  [r.option]
+                );
+                const idReponse = answer.insertId;
+
+                await connexion.execute(
+                  'INSERT INTO CORRESPONDRE (ID_REPONSE, ID_QUESTION, CORRECT) VALUES (?, ?, ?)',
+                  [idReponse, idQuestion, r.correct ? 1 : 0]
+                );
+              }
+            }
+          }
         }
       }
     }
 
-    // 7. Valider l'ensemble des requêtes (Transaction réussie)
     await connexion.commit();
 
     res.status(201).json({
-      message: "Leçon générée et insérée avec succès !",
-      data: { idLecon, theme, modulesCount: modules_json.length }
+      message: "Parcours et modules validés et enregistrés en base de données !",
+      data: { idLecon, theme }
     });
 
   } catch (erreur) {
-    // En cas d'erreur, on annule toutes les opérations
     if (connexion) await connexion.rollback();
+    console.error("Erreur enregistrement :", erreur);
     res.status(500).json({ error: erreur.message });
   } finally {
-    // Libération de la connexion au pool
     if (connexion) connexion.release();
   }
 };
 
 // =================================================================
-// 1. LISTER TOUTES LES LECONS
+// 3. RECUPERER LES QUIZ D'UN UTILISATEUR (getUserQuizzes)
+// =================================================================
+export const getUserQuizzes = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const query = `
+      SELECT 
+        Q.ID_QUIZ, 
+        Q.TITRE_QUIZ, 
+        M.ID_MODULE, 
+        M.NOM_MODULE, 
+        L.ID_LECON, 
+        L.NOM_LECON
+      FROM TRAVAILLER T
+      JOIN LECON L ON T.ID_LECON = L.ID_LECON
+      JOIN REGROUPER R ON L.ID_LECON = R.ID_LECON
+      JOIN MODULE M ON R.ID_MODULE = M.ID_MODULE
+      JOIN GENERER G ON M.ID_MODULE = G.ID_MODULE
+      JOIN QUIZ Q ON G.ID_QUIZ = Q.ID_QUIZ
+      WHERE T.EMAIL_USER = ?
+    `;
+
+    const [quizzes] = await db.execute(query, [email]);
+
+    res.status(200).json({
+      message: `Quiz trouvés pour l'utilisateur ${email}`,
+      count: quizzes.length,
+      data: quizzes
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// =================================================================
+// AUTRES FONCTIONS UTILITAIRES
 // =================================================================
 export const getAllLessons = async (req, res) => {
   try {
@@ -159,9 +292,6 @@ export const getAllLessons = async (req, res) => {
   }
 };
 
-// =================================================================
-// 2. RECUPERER UNE LECON + SES MODULES (JOIN REGROUPER)
-// =================================================================
 export const getLessonWithModules = async (req, res) => {
   try {
     const { id } = req.params;
@@ -169,7 +299,7 @@ export const getLessonWithModules = async (req, res) => {
     const query = `
       SELECT 
         L.ID_LECON, L.NOM_LECON, L.TERMINE,
-        M.ID_MODULE, M.NOM_MODULE, M.NIVEAU_MODULE, M.FINI
+        M.ID_MODULE, M.NOM_MODULE, M.FINI
       FROM LECON L
       LEFT JOIN REGROUPER R ON L.ID_LECON = R.ID_LECON
       LEFT JOIN MODULE M ON R.ID_MODULE = M.ID_MODULE
@@ -189,7 +319,6 @@ export const getLessonWithModules = async (req, res) => {
       MODULES: rows[0].ID_MODULE ? rows.map(r => ({
         ID_MODULE: r.ID_MODULE,
         NOM_MODULE: r.NOM_MODULE,
-        NIVEAU_MODULE: r.NIVEAU_MODULE,
         FINI: r.FINI
       })) : []
     };
@@ -200,13 +329,9 @@ export const getLessonWithModules = async (req, res) => {
   }
 };
 
-// =================================================================
-// 3. RECUPERER UN MODULE PRECIS
-// =================================================================
 export const getModuleDetails = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [modules] = await db.execute('SELECT * FROM MODULE WHERE ID_MODULE = ?', [id]);
 
     if (modules.length === 0) {
@@ -219,17 +344,14 @@ export const getModuleDetails = async (req, res) => {
   }
 };
 
-// =================================================================
-// 4. MARQUER UNE LECON COMME TERMINEE POUR UN USER (TRAVAILLER)
-// =================================================================
 export const completeLessonForUser = async (req, res) => {
   try {
     const { EMAIL_USER, ID_LECON } = req.body;
 
     const query = `
-      INSERT INTO TRAVAILLER (EMAIL_USER, ID_LECON, TERMINE)
-      VALUES (?, ?, 1)
-      ON DUPLICATE KEY UPDATE TERMINE = 1;
+      INSERT INTO TRAVAILLER (EMAIL_USER, ID_LECON)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE EMAIL_USER = EMAIL_USER;
     `;
 
     await db.execute(query, [EMAIL_USER, ID_LECON]);
@@ -240,24 +362,16 @@ export const completeLessonForUser = async (req, res) => {
   }
 };
 
-// =================================================================
-// 5. MARQUER UN MODULE COMME FINI
-// =================================================================
 export const completeModule = async (req, res) => {
   try {
     const { id } = req.params;
-
     await db.execute('UPDATE MODULE SET FINI = 1 WHERE ID_MODULE = ?', [id]);
-
     res.status(200).json({ message: `Module ${id} marqué comme fini.` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// =================================================================
-// 6. RECUPERER LA PROGRESSION D'UN USER
-// =================================================================
 export const getUserProgress = async (req, res) => {
   try {
     const { email } = req.params;
@@ -265,7 +379,7 @@ export const getUserProgress = async (req, res) => {
     const query = `
       SELECT 
         (SELECT COUNT(*) FROM LECON) AS TOTAL_LECONS,
-        (SELECT COUNT(*) FROM TRAVAILLER WHERE EMAIL_USER = ? AND TERMINE = 1) AS LECONS_TERMINEES
+        (SELECT COUNT(*) FROM TRAVAILLER WHERE EMAIL_USER = ?) AS LECONS_TERMINEES
     `;
 
     const [rows] = await db.execute(query, [email]);
@@ -282,9 +396,6 @@ export const getUserProgress = async (req, res) => {
   }
 };
 
-// =================================================================
-// 7. RECUPERER LE PROCHAIN MODULE NON TERMINE D'UNE LECON
-// =================================================================
 export const getNextUnfinishedModule = async (req, res) => {
   try {
     const { idLecon } = req.params;
@@ -294,7 +405,7 @@ export const getNextUnfinishedModule = async (req, res) => {
       FROM MODULE M
       JOIN REGROUPER R ON M.ID_MODULE = R.ID_MODULE
       WHERE R.ID_LECON = ? AND M.FINI = 0
-      ORDER BY M.NIVEAU_MODULE ASC, M.ID_MODULE ASC
+      ORDER BY M.ID_MODULE ASC
       LIMIT 1;
     `;
 
@@ -310,7 +421,6 @@ export const getNextUnfinishedModule = async (req, res) => {
   }
 };
 
-// Récupérer la liste des leçons pour un utilisateur spécifique (avec son statut de progression)
 export const getUserLessons = async (req, res) => {
   try {
     const { email } = req.params;
@@ -319,7 +429,7 @@ export const getUserLessons = async (req, res) => {
       SELECT 
         L.ID_LECON, 
         L.NOM_LECON, 
-        IFNULL(T.TERMINE, 0) AS TERMINE
+        IF(T.EMAIL_USER IS NOT NULL, 1, 0) AS TERMINE
       FROM LECON L
       LEFT JOIN TRAVAILLER T 
         ON L.ID_LECON = T.ID_LECON AND T.EMAIL_USER = ?
