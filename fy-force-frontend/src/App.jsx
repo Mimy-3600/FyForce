@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
 import LeaderBoard from "./components/Leaderboard/LeaderBoard";
+import Chatbox from "./components/chatbox/Chatbox";
 import Header from "./components/shared/Header";
 import Path from "./views/Path";
 
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/leaderBoard" element={<LeaderBoard />} />
         <Route path="/path" element={<Path />}/>
+        <Route path="/chatbox" element={<Chatbox />} />
       </Routes>
     </main>
   );
