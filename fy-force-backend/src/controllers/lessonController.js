@@ -18,20 +18,6 @@ function getRandomArtefactCount(niveau) {
   return Math.min(Math.max(total, 1), 5);
 }
 
-/**
- * Helper: Génération des stats d'un artefact selon le niveau
- */
-function generateArtefactStats(niveau) {
-  const randomType = TYPES_ARTEFACTS[Math.floor(Math.random() * TYPES_ARTEFACTS.length)];
-  const baseStat = niveau * 15;
-  const luckBonus = Math.floor(Math.random() * 15);
-
-  return {
-    code_type: randomType,
-    stat: baseStat + luckBonus
-  };
-}
-
 // =================================================================
 // 1. GENERER OU MODIFIER UN BROUILLON DE PLAN (AVEC MEMOIRE IA)
 // =================================================================
@@ -109,6 +95,58 @@ export const generateLesson = async (req, res) => {
   }
 };
 
+
+// Les libellés de type autorisés
+const LIBELLES_ARTEFACTS = ['ATTAQUE', 'DEFENSE', 'CRAFT'];
+
+/**
+ * Helper: Génère 2 lettres aléatoires (ex: 'AB', 'XY')
+ */
+function getRandomLetters(length = 2) {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return result;
+}
+
+/**
+ * Helper: Génère un CODE_ARTEFACT unique
+ * Format : NOM + 4 derniers chiffres timestamp ms + 2 lettres
+ * Exemple : "EPEE9821XZ"
+ */
+function generateUniqueArtefactCode(nomPrefix = "ART") {
+  // Nettoie le nom (garde uniquement les lettres sans espaces/accents)
+  const cleanNom = nomPrefix.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8) || "ART";
+  
+  // 4 derniers chiffres des millisecondes actuelles
+  const last4Ms = Date.now().toString().slice(-4);
+  
+  // 2 lettres aléatoires
+  const random2Letters = getRandomLetters(2);
+
+  return `${cleanNom}${last4Ms}${random2Letters}`;
+}
+
+/**
+ * Helper: Génération des stats et attributs d'un artefact
+ */
+function generateArtefactStats(moduleNom, niveau) {
+  const randomLibelle = LIBELLES_ARTEFACTS[Math.floor(Math.random() * LIBELLES_ARTEFACTS.length)];
+  const uniqueCode = generateUniqueArtefactCode(moduleNom || "ART");
+  
+  const baseStat = niveau * 15;
+  const luckBonus = Math.floor(Math.random() * 15);
+
+  return {
+    code_artefact: uniqueCode,
+    libelle_type: randomLibelle, // ATTAQUE, DEFENSE ou CRAFT
+    stat: baseStat + luckBonus
+  };
+}
+
+
 // =================================================================
 // 2. SAUVEGARDER LE PARCOURS DÉFINITIF EN BDD (BOUTON VALIDER)
 // =================================================================
@@ -131,8 +169,15 @@ export const saveCustomLesson = async (req, res) => {
     );
     const idLecon = lec.insertId;
 
-    // 2. Attribution de l'Item de fin de cours s'il y a un utilisateur
+    // 2. Gestion de l'utilisateur (Liaison Leçon + Item offert)
     if (email_user) {
+      // 2a. Lier l'utilisateur à cette nouvelle leçon dans la table TRAVAILLER
+      await connexion.execute(
+        'INSERT IGNORE INTO TRAVAILLER (EMAIL_USER, ID_LECON) VALUES (?, ?)',
+        [email_user, idLecon]
+      );
+
+      // 2b. Attribution de l'Item de fin/début de cours
       const [availableItems] = await connexion.execute(
         `SELECT ID_ITEM FROM ITEM 
          WHERE ID_ITEM NOT IN (SELECT ID_ITEM FROM RECEVOIR WHERE EMAIL_USER = ?)
@@ -140,12 +185,13 @@ export const saveCustomLesson = async (req, res) => {
         [email_user]
       );
 
-      let itemToGive = availableItems.length > 0 ? availableItems[0].ID_ITEM : 1;
-
-      await connexion.execute(
-        'INSERT IGNORE INTO RECEVOIR (ID_ITEM, EMAIL_USER) VALUES (?, ?)',
-        [itemToGive, email_user]
-      );
+      if (availableItems.length > 0) {
+        const itemToGive = availableItems[0].ID_ITEM;
+        await connexion.execute(
+          'INSERT IGNORE INTO RECEVOIR (ID_ITEM, EMAIL_USER) VALUES (?, ?)',
+          [itemToGive, email_user]
+        );
+      }
     }
 
     // 3. Boucle sur les modules validés par l'utilisateur
@@ -165,17 +211,26 @@ export const saveCustomLesson = async (req, res) => {
         [idLecon, idModule]
       );
 
-      // 3c. Génération de 1 à 5 artefacts neutres selon la difficulté
+      // 3c. Génération des artefacts uniques
       const nbArtefacts = getRandomArtefactCount(niveau);
-      for (let i = 0; i < nbArtefacts; i++) {
-        const artStats = generateArtefactStats(niveau);
 
+      for (let i = 0; i < nbArtefacts; i++) {
+        const art = generateArtefactStats(m.nom, niveau);
+
+        // 1. Assure la présence de la clé dans TYPE_ARTEFACT (clé primaire = CODE_ARTEFACT)
+        await connexion.execute(
+          'INSERT INTO TYPE_ARTEFACT (CODE_ARTEFACT, LIBELLE_ARTEFACT) VALUES (?, ?) ON DUPLICATE KEY UPDATE LIBELLE_ARTEFACT = VALUES(LIBELLE_ARTEFACT)',
+          [art.code_artefact, art.libelle_type]
+        );
+
+        // 2. Insère l'artefact rattaché à son type unique
         const [repArt] = await connexion.execute(
           'INSERT INTO ARTEFACT (CODE_ARTEFACT, STAT_ARTEFACT) VALUES (?, ?)',
-          [artStats.code_type, artStats.stat]
+          [art.code_artefact, art.stat]
         );
         const idArtefact = repArt.insertId;
 
+        // 3. Liaison Module <-> Artefact (DROPPER)
         await connexion.execute(
           'INSERT INTO DROPPER (ID_MODULE, ID_ARTEFACT) VALUES (?, ?)',
           [idModule, idArtefact]

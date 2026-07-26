@@ -1,8 +1,8 @@
 
-    import { Router } from 'express';
-    import * as lessonController from '../controllers/lessonController.js';
+import { Router } from 'express';
+import * as lessonController from '../controllers/lessonController.js';
 
-    const router = Router();
+const router = Router();
 // Génération d'une leçon via l'IA Gemini
 router.post('/generate', lessonController.generateLesson);
 
@@ -34,7 +34,7 @@ router.put('/module/:id/complete', lessonController.completeModule);
 router.post('/lesson/generate', lessonController.generateLesson);
 
 // 2. Enregistrement définitif du plan validé en BDD
-router.post('/lesson/save-custom', lessonController.saveCustomLesson);
+router.post('/save-custom', lessonController.saveCustomLesson);
 
 // 3. Récupération des quiz d'un utilisateur
 router.get('/users/:email/quizzes', lessonController.getUserQuizzes);

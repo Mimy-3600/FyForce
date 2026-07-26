@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { getCurrentUser } from '../../services/auth'; // Ajuste le chemin vers ton auth si besoin
 
-export default function QuizViewer({ userEmail, onClose, onComplete }) {
+export default function QuizViewer({ onClose, onComplete }) {
   const [quizzes, setQuizzes] = useState([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -10,11 +11,22 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
 
-  // 1. Récupération des quiz de l'utilisateur depuis ton backend Express
+  // Récupération automatique de l'email via l'auth + chargement des quiz
   useEffect(() => {
     const fetchUserQuizzes = async () => {
+      // 1. Récupération de l'utilisateur via la fonction d'authentification
+      const currentUser = getCurrentUser();
+      const userEmail = currentUser?.EMAIL_USER || currentUser?.email;
+
+      if (!userEmail) {
+        setError("Aucun utilisateur connecté ou aucun email trouvé.");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
+        // 2. Appel de la route API avec l'email extrait
         const response = await fetch(`http://localhost:3000/api/lesson/users/${userEmail}/quizzes`);
         const data = await response.json();
 
@@ -26,24 +38,22 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
           setError("Aucun quiz disponible pour le moment.");
         }
       } catch (err) {
-        console.error("Erreur chargement quiz :", err);
-        setError("Impossible de charger les quiz.");
+        console.error("Erreur lors du chargement des quiz :", err);
+        setError("Impossible de contacter le serveur pour charger le quiz.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (userEmail) {
-      fetchUserQuizzes();
-    }
-  }, [userEmail]);
+    fetchUserQuizzes();
+  }, []);
 
-  // Quiz & Question en cours
+  // Objets de la question courante
   const currentQuiz = quizzes[currentQuizIndex];
   const questions = currentQuiz?.questions || currentQuiz?.QUESTIONS || [];
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Gestion du choix d'une réponse
+  // Sélection d'une option de réponse
   const handleSelectOption = (optionIndex) => {
     setSelectedAnswers((prev) => ({
       ...prev,
@@ -51,7 +61,7 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
     }));
   };
 
-  // Passer à la question suivante ou terminer
+  // Passer à la question suivante
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
@@ -62,7 +72,7 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
     }
   };
 
-  // Calcul du score simple (si la propriété estReponseCorrecte existe sur l'option)
+  // Calcul du score final
   const calculateScore = () => {
     let pts = 0;
     questions.forEach((q, qIdx) => {
@@ -75,13 +85,13 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
     setScore(pts);
   };
 
-  // --- RENDU : CHARGEMENT & ERREUR ---
+  // --- RENDU : CHARGEMENT & ERREURS ---
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
           <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Chargement de ton quiz...</p>
+          <p className="text-gray-700 font-medium text-sm">Chargement du quiz...</p>
         </div>
       </div>
     );
@@ -91,10 +101,10 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
     return (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm text-center">
-          <p className="text-gray-800 font-bold mb-3">{error || "Aucun quiz trouvé."}</p>
+          <p className="text-gray-800 font-bold text-sm mb-4">{error || "Aucun quiz disponible."}</p>
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-700"
+            className="px-5 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-700 cursor-pointer"
           >
             Fermer
           </button>
@@ -103,16 +113,15 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
     );
   }
 
-  // --- RENDU : VUE DE FIN + STREAK BADGE 3J ---
+  // --- RENDU : FIN DU QUIZ + BADGE STREAK 3J ---
   if (isFinished) {
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative overflow-hidden">
-          {/* Effet lumineux de fond */}
           <div className="absolute -top-10 -left-10 w-32 h-32 bg-orange-300/30 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-amber-300/30 rounded-full blur-2xl pointer-events-none" />
 
-          {/* BADGE STREAK 3 JOURS */}
+          {/* Badge de Streak 3j */}
           <div className="relative z-10 mx-auto w-20 h-20 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30 ring-4 ring-orange-100 mb-4 animate-bounce">
             <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 23c-4.97 0-9-3.58-9-8 0-4.19 3.01-7.12 6.01-10.03.86-.84 1.73-1.69 2.49-2.61.18-.22.46-.36.75-.36s.57.14.75.36c.76.92 1.63 1.77 2.49 2.61C18.49 7.88 21 10.81 21 15c0 4.42-4.03 8-9 8z" />
@@ -122,35 +131,35 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
             </span>
           </div>
 
-          <h3 className="text-2xl font-black text-gray-900 mb-1">Quiz Terminé !</h3>
+          <h3 className="text-2xl font-black text-gray-900 mb-1">Quiz Validé !</h3>
           <p className="text-sm text-gray-500 mb-4">
-            Tu as obtenu <span className="font-bold text-orange-600">{score} / {questions.length}</span> bonnes réponses.
+            Score : <span className="font-bold text-orange-600">{score} / {questions.length}</span>
           </p>
 
-          <div className="bg-orange-50 border border-orange-200 p-3 rounded-xl mb-6">
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded-xl mb-6 text-left">
             <p className="text-xs font-bold text-orange-700">🎉 Série maintenue !</p>
-            <p className="text-[11px] text-orange-600">Tu viens de valider ton 3ᵉ jour consécutif d'apprentissage.</p>
+            <p className="text-[11px] text-orange-600">Tu as validé ton quiz et ton 3ᵉ jour consécutif d'apprentissage.</p>
           </div>
 
           <button
             onClick={onClose}
-            className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+            className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl text-sm shadow-md transition-all active:scale-95 cursor-pointer"
           >
-            Continuer
+            Retour au parcours
           </button>
         </div>
       </div>
     );
   }
 
-  // --- RENDU : QUESTION EN COURS ---
+  // --- RENDU : INTERFACE DU QUIZ ---
   const options = currentQuestion?.options || currentQuestion?.OPTIONS || [];
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden relative flex flex-col">
         
-        {/* Entête du Quiz */}
+        {/* Entête */}
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-slate-50">
           <div>
             <h4 className="font-bold text-gray-800 text-sm">{currentQuiz.TITRE || currentQuiz.title || "Quiz d'évaluation"}</h4>
@@ -160,7 +169,7 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-sm font-bold p-1 rounded-lg hover:bg-gray-200 transition-all"
+            className="text-gray-400 hover:text-gray-600 text-sm font-bold p-1 rounded-lg hover:bg-gray-200 transition-all cursor-pointer"
           >
             ✕
           </button>
@@ -189,7 +198,7 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
                 <button
                   key={idx}
                   onClick={() => handleSelectOption(idx)}
-                  className={`w-full text-left p-4 rounded-xl text-xs font-semibold border transition-all flex items-center justify-between ${
+                  className={`w-full text-left p-4 rounded-xl text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-sm ring-1 ring-orange-400'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-slate-50'
@@ -209,7 +218,7 @@ export default function QuizViewer({ userEmail, onClose, onComplete }) {
           </div>
         </div>
 
-        {/* Pied de page / Bouton Suivant */}
+        {/* Footer */}
         <div className="p-4 border-t border-gray-100 bg-slate-50 flex justify-end">
           <button
             onClick={handleNext}

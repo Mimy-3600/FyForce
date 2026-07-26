@@ -1,3 +1,8 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
 .main-container {
 	width: 100%;
 	height: 100%;
@@ -9,8 +14,125 @@
 	background-color: #090c13;
 
 	background-image: 
-		radial-gradient(circle at 50%, rgba(236, 72, 153, 0.4) 0px, transparent 50%),
-	    radial-gradient(circle, rgba(6, 182, 212, 0.4) 0px, transparent 50%),
-	    radial-gradient(circle, rgba(168, 85, 247, 0.4) 0px, transparent 50%)
+		radial-gradient(circle 300px at 40% 10%, #23335544, transparent),
+		radial-gradient(circle 200px at 60% 20%, #2b203044, transparent),
+		radial-gradient(circle 300px at bottom left, #23335544, transparent),
+		radial-gradient(circle 400px at 0% 70%, #23335544, transparent)
 	;
+
+	display: flex;
+	place-content: center;
+}
+
+.home-container {
+	width: 100%;
+	height: 100%;
+	border-radius: 10px;
+	background-color: #ffffff04;
+	display: flex;
+	box-sizing: border-box;
+}
+
+.home-container-info {
+	position: relative;
+	width: 60%;
+	height: 100%;
+	border-radius: 10px 0 0 10px;
+	background-image: linear-gradient(90deg, #000000ff, transparent);
+	padding: 80px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.home-container-action-sign {
+	position: fixed;
+	height: 100%;
+	width: 40%;
+	border-radius: 0 10px 10px 0;	
+	padding-top: 200px;
+	text-align: end;
+	justify-items: self-end;
+}
+
+.home-container-name {
+	width: 100%;
+	height: 130px;
+	display: flex;
+	gap: 10px;
+}
+
+.home-container-name div{
+	color: white;
+	font-size: 45px;
+	font-family: nunitoSemiBold;
+}
+
+.home-container-slogan {
+	width: 100%;
+	height: 200px;
+	font-size: 50px;
+	color: white;
+}
+
+.home-container-slogan .linear-text {
+	background-image: linear-gradient(90deg, #51BCFF 0%, #d15caa 50%, #5b58dd 100%);
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
+}
+
+.home-container-description {
+	width: 60%;
+	height: 100px;
+	color: #fff7;
+	margin-top: 50px;
+}
+
+.home-container-action {
+	width: 100%;
+	height: 50px;
+}
+
+.home-container-action .button{
+	height: 40px;
+	width: 160px;
+	border-radius: 20px;
+	background-image: linear-gradient(90deg, #51BCFF 0%, #d15caa 50%, #5b58dd 100%);
+	cursor: pointer;
+}
+
+.home-container-extra {
+	width: 100%;
+	height: 50px;
+}
+
+.home-container-3d-artifact{
+	position: absolute;
+	height: 170%;
+	width: calc(100% + 400px);
+	top: 0;
+	left: 0;
+	z-index: -2;
+}
+
+.cursor-target {
+	height: 50px;
+	width: 140px;
+	border-radius: 9px;
+	margin-left: 14px;
+}
+
+.cursor-target.Login {
+	background-color: #000000;
+	color: white;
+	border: none;
+	font-size: 18px;
+}
+.cursor-target.Register {
+	background-color: #ffffff33;
+	border: none;
+	height: 40px;
+	width: 110px;
 }
