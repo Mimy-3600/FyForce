@@ -88,7 +88,6 @@ export default function App() {
             path="/login" 
             element={user ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />} 
           />
-          {/* <Route path="/learning" */}
         </Routes>
       </div>
 
