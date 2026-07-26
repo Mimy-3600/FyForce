@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Fighter's Arena</title>
+  <link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+const WS_URL = "ws://localhost:8080";
+const CLASH_MS = 700;
+
+function HpBar({ hp, maxHp }) {
+  const pct = Math.max(0, (hp / maxHp) * 100);
+  return (
+    <>
+      <div className="hpbar-track">
+        <div className="hpbar-fill" style={{ width: pct + "%" }}></div>
+      </div>
+      <div className="hp-number">{Math.max(0, hp)} / {maxHp}</div>
+    </>
+  );
+}
+
+function spriteClassFor(action, wasHit) {
+  if (wasHit) return "sprite-hurt";
+  if (!action) return null;
+  if (action.move === "light") return "sprite-attack";
+  if (action.move === "heavy") return action.result === "fizzled" ? null : "sprite-heavy";
+  if (action.move === "block") return "sprite-block";
+  if (action.move === "charge") return "sprite-charge";
+  return null;
+}
+
+function tileClassFor(action) {
+  if (!action) return null;
+  if (action.move === "light") return "attacking-tile";
+  if (action.move === "heavy") return action.result === "fizzled" ? "fizzle-tile" : "attacking-tile heavy-move";
+  if (action.move === "charge") return "charge-tile";
+  return null;
+}
+
+function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
+  const fallen = data.hp <= 0;
+  const tileClasses = ["combatant", side, tileAnim].filter(Boolean).join(" ");
+  const spriteClasses = ["sprite", kind, fallen ? "fallen" : (spriteAnim || "idle")].filter(Boolean).join(" ");
+  return (
+    <div className={tileClasses}>
+      <div className="combatant-label">
+        <span className={"core-orb" + (data.charge < 1 && !fallen ? " charging" : "")}></span>
+        {label}
+      </div>
+      <div className={"sprite-stage " + kind}>
+        <div className="sprite-flip">
+          <div className={spriteClasses}></div>
+        </div>
+      </div>
+      <HpBar hp={data.hp} maxHp={data.maxHp} />
+      <div className="combatant-status">
+        {fallen ? "fallen" : data.charge >= 1 ? "heavy ready" : "charging"}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [connected, setConnected] = useState(false);
+  const [playerId, setPlayerId] = useState(null);
+  const [state, setState] = useState(null);
+  const [anim, setAnim] = useState({ p1: null, p2: null, p1Hit: false, p2Hit: false });
+  const [gameOver, setGameOver] = useState(false);
+  const [notice, setNotice] = useState(null);
+  const [roundBanner, setRoundBanner] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  const wsRef = useRef(null);
+  const clashTimerRef = useRef(null);
+  const pendingGameOverRef = useRef(false);
+  const bannerTimerRef = useRef(null);
+  const prevRoundRef = useRef(null);
+
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
+
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => setConnected(false);
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "assigned") {
+        setPlayerId(msg.id);
+        setGameOver(false);
+      } else if (msg.type === "state") {
+        if (msg.actions) {
+          pendingGameOverRef.current = false;
+          setAnim({
+            p1: msg.actions.p1 || null,
+            p2: msg.actions.p2 || null,
+            p1Hit: !!(msg.actions.p2 && msg.actions.p2.damage > 0),
+            p2Hit: !!(msg.actions.p1 && msg.actions.p1.damage > 0),
+          });
+          if (clashTimerRef.current) clearTimeout(clashTimerRef.current);
+          clashTimerRef.current = setTimeout(() => {
+            setAnim({ p1: null, p2: null, p1Hit: false, p2Hit: false });
+            setState(msg);
+            if (pendingGameOverRef.current) setGameOver(true);
+            clashTimerRef.current = null;
+          }, CLASH_MS);
+        } else {
+          setState(msg);
+        }
+      } else if (msg.type === "game_over") {
+        if (clashTimerRef.current) pendingGameOverRef.current = true;
+        else setGameOver(true);
+      } else if (msg.type === "full") {
+        setNotice("This match already has two players.");
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+    if (!state) return;
+    if (!(state.p1Connected && state.p2Connected)) {
+      prevRoundRef.current = null;
+      return;
+    }
+    if (prevRoundRef.current !== state.round) {
+      prevRoundRef.current = state.round;
+      setRoundBanner(state.round);
+      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+      bannerTimerRef.current = setTimeout(() => setRoundBanner(null), 1400);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  function sendMove(move) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "move", move }));
+    }
+  }
+
+  if (notice) return <div className="center">{notice}</div>;
+  if (!connected) return <div className="center">Connecting to the arena...</div>;
+  if (!playerId) return <div className="center">Waiting for a player slot...</div>;
+  if (!state) return <div className="center">Waiting for match state...</div>;
+
+  const bothConnected = state.p1Connected && state.p2Connected;
+
+  if (!bothConnected) {
+    return (
+      <div className="game">
+        <h1>Fighter's Arena — You are Player {playerId}</h1>
+        <div className="waiting-arena">
+          <div className="waiting-orb"></div>
+          <div className="waiting-title">Awaiting a challenger...</div>
+          <div className="waiting-sub">Share the link with a friend — the match starts the moment they arrive.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const me = playerId === 1 ? state.p1 : state.p2;
+  const opp = playerId === 1 ? state.p2 : state.p1;
+  const myKind = playerId === 1 ? "knight" : "wizard";
+  const oppKind = playerId === 1 ? "wizard" : "knight";
+  const myAction = playerId === 1 ? anim.p1 : anim.p2;
+  const oppAction = playerId === 1 ? anim.p2 : anim.p1;
+  const myHit = playerId === 1 ? anim.p1Hit : anim.p2Hit;
+  const oppHit = playerId === 1 ? anim.p2Hit : anim.p1Hit;
+  const locked = me.locked;
+  const clashing = !!(anim.p1 || anim.p2);
+  const secondsLeft = state.deadline ? Math.max(0, Math.ceil((state.deadline - now) / 1000)) : null;
+
+  return (
+    <div className="game">
+      <h1>Fighter's Arena — You are Player {playerId}</h1>
+
+      {roundBanner !== null && (
+        <div className="round-banner" key={roundBanner}>
+          <div className="round-banner-eyebrow">ROUND</div>
+          <div className="round-banner-number">{roundBanner}</div>
+        </div>
+      )}
+
+      {!gameOver && secondsLeft !== null && (
+        <div className={"round-timer" + (secondsLeft <= 10 ? " urgent" : "")}>
+          Lock in within {secondsLeft}s
+        </div>
+      )}
+
+      <div className="arena">
+        <Combatant
+          side="player" kind={myKind} label="You" data={me}
+          tileAnim={tileClassFor(myAction)} spriteAnim={spriteClassFor(myAction, myHit)}
+        />
+        <div className="vs">VS</div>
+        <Combatant
+          side="enemy" kind={oppKind} label="Opponent" data={opp}
+          tileAnim={tileClassFor(oppAction)} spriteAnim={spriteClassFor(oppAction, oppHit)}
+        />
+      </div>
+
+      {gameOver && <div className="over-banner">Match over. </div>}
+
+      <div className="buttons">
+        <button className="light" disabled={locked || gameOver} onClick={() => sendMove("light")}>Light</button>
+        <button className="heavy" disabled={locked || gameOver || me.charge < 1} onClick={() => sendMove("heavy")}>Heavy</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("block")}>Block</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("charge")}>Charge</button>
+      </div>
+
+      {!gameOver && clashing && (
+        <p className="waiting">The fighters clash...</p>
+      )}
+      {!gameOver && !clashing && locked && (
+        <p className="waiting">Move locked in — waiting on your opponent...</p>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

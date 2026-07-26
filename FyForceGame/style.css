@@ -1,0 +1,519 @@
+/* ===== Fonts ===== */
+@font-face {
+  font-family: 'nunitoRegular';
+  src: url('../assets/fonts/Nunito-Regular.ttf');
+}
+@font-face {
+  font-family: 'nunitoMedium';
+  src: url('../assets/fonts/Nunito-Medium.ttf');
+}
+@font-face {
+  font-family: 'nunitoLight';
+  src: url('../assets/fonts/Nunito-Light.ttf');
+}
+@font-face {
+  font-family: 'nunitoSemiBold';
+  src: url('../assets/fonts/Nunito-SemiBold.ttf');
+}
+
+/* ===== Theme Tokens (from Profile.css + Path.css + Home.css) ===== */
+:root {
+  --bg-deep: #090c13;
+  --bg-card: #ffffff08;
+  --bg-card-solid: #ffffff;
+  --border-glass: #fff2;
+  --border-light: #00000011;
+  --text-primary: #ffffff;
+  --text-secondary: #ffffffaa;
+  --text-muted: #ffffff66;
+  --accent-gold: #fccc54;
+  --accent-purple: #7964ff;
+  --accent-green: #6bc561;
+  --accent-pink: #fc5271;
+  --accent-cyan: #06b6d4;
+  --accent-magenta: #ec4899;
+  --hp-bg: #e4e4e4;
+  --hp-fill: #fccc54;
+  --glass-blur: blur(10px);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'nunitoRegular', 'Nunito', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(circle at 50%, rgba(236, 72, 153, 0.25) 0px, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(6, 182, 212, 0.2) 0px, transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(121, 100, 255, 0.2) 0px, transparent 45%),
+    radial-gradient(circle 300px at 40% 10%, #23335544, transparent),
+    radial-gradient(circle 200px at 60% 20%, #2b203044, transparent),
+    radial-gradient(circle 300px at bottom right, #23335544, transparent),
+    radial-gradient(circle 400px at 0% 70%, #23335544, transparent);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.center {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  letter-spacing: 0.02em;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+
+/* ===== Game Card (glassmorphism from Path.css) ===== */
+.game {
+  width: 100%;
+  max-width: 580px;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+}
+
+h1 {
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 24px;
+  color: var(--accent-gold);
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 16px;
+}
+
+/* ===== HP Bar (Profile.css xp-bar style) ===== */
+.hpbar-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+  opacity: 0.85;
+  font-family: 'nunitoMedium', 'Nunito', sans-serif;
+}
+.hpbar-track {
+  height: 14px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+}
+.hpbar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-gold), #ffe082);
+  box-shadow: 0 0 12px rgba(252, 204, 84, 0.35);
+  border-radius: 20px;
+  transition: width 0.4s ease;
+}
+.hp-number {
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 4px;
+  opacity: 0.7;
+  font-family: 'nunitoMedium', 'Nunito', sans-serif;
+}
+
+/* ===== Buttons (Profile.css pastel + Path.css glass) ===== */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+button {
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  padding: 14px 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+button:hover:not(:disabled) {
+  background: rgba(255,255,255,0.14);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+button.light {
+  border-color: rgba(252, 204, 84, 0.5);
+  background: rgba(252, 204, 84, 0.1);
+  color: var(--accent-gold);
+}
+button.light:hover:not(:disabled) {
+  background: rgba(252, 204, 84, 0.2);
+  box-shadow: 0 4px 20px rgba(252, 204, 84, 0.2);
+}
+button.heavy {
+  border-color: rgba(252, 82, 113, 0.5);
+  background: rgba(252, 82, 113, 0.1);
+  color: var(--accent-pink);
+}
+button.heavy:hover:not(:disabled) {
+  background: rgba(252, 82, 113, 0.2);
+  box-shadow: 0 4px 20px rgba(252, 82, 113, 0.2);
+}
+
+.waiting {
+  text-align: center;
+  font-style: italic;
+  opacity: 0.7;
+  margin: 0 0 16px;
+  font-family: 'nunitoLight', 'Nunito', sans-serif;
+}
+.over-banner {
+  text-align: center;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--accent-pink);
+  border-radius: 12px;
+  color: var(--accent-pink);
+  letter-spacing: 0.04em;
+  background: rgba(252, 82, 113, 0.08);
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+
+/* ===== Arena Layout ===== */
+.arena {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  margin: 24px 0;
+  min-height: 200px;
+  position: relative;
+}
+.vs {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--accent-gold);
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+  z-index: 0;
+  pointer-events: none;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+.combatant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+.combatant-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+.sprite-stage {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 12px;
+  position: relative;
+  image-rendering: pixelated;
+}
+.sprite-flip {
+  width: 100%;
+  height: 100%;
+}
+.enemy .sprite-flip {
+  transform: scaleX(-1);
+}
+.combatant-status {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-top: 4px;
+  font-style: italic;
+  min-height: 1.2em;
+  font-family: 'nunitoLight', 'Nunito', sans-serif;
+}
+
+/* Charge orb (Profile.css gold accent) */
+.core-orb {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.core-orb.charging {
+  background: var(--accent-gold);
+  box-shadow: 0 0 14px var(--accent-gold), 0 0 4px #fff;
+}
+
+/* Round banner (glass + gold) */
+.round-banner {
+  text-align: center;
+  margin-bottom: 16px;
+  animation: banner-in 0.4s ease-out;
+}
+@keyframes banner-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+.round-banner-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  opacity: 0.8;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+.round-banner-number {
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  line-height: 1;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+
+/* Timer */
+.round-timer {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 12px;
+  font-family: 'nunitoMedium', 'Nunito', sans-serif;
+}
+.round-timer.urgent {
+  color: var(--accent-pink);
+  opacity: 1;
+  font-weight: bold;
+}
+
+/* Waiting screen */
+.waiting-arena {
+  text-align: center;
+  padding: 40px 20px;
+}
+.waiting-orb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  margin: 0 auto 20px;
+  animation: pulse-orb 1.5s ease-in-out infinite;
+}
+@keyframes pulse-orb {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.waiting-title {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  opacity: 0.9;
+  font-family: 'nunitoSemiBold', 'Nunito', sans-serif;
+}
+.waiting-sub {
+  font-size: 0.85rem;
+  opacity: 0.5;
+  font-family: 'nunitoLight', 'Nunito', sans-serif;
+}
+
+/* ===== Tile movement / Fire Emblem clash ===== */
+.attacking-tile {
+  animation: lunge 0.55s ease-in-out;
+}
+.heavy-move {
+  animation: heavy-lunge 0.7s ease-in-out;
+}
+.charge-tile {
+  animation: charge-pulse 0.6s ease-in-out infinite;
+}
+.fizzle-tile {
+  animation: fizzle-shake 0.4s ease-in-out;
+}
+
+@keyframes lunge {
+  0% { transform: translateX(0); }
+  45% { transform: translateX(var(--lunge-dir)); }
+  70% { transform: translateX(var(--lunge-dir)); }
+  100% { transform: translateX(0); }
+}
+@keyframes heavy-lunge {
+  0% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(var(--lunge-dir)) scale(1.05); }
+  65% { transform: translateX(var(--lunge-dir)) scale(1.05); }
+  100% { transform: translateX(0) scale(1); }
+}
+@keyframes charge-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.25); }
+}
+@keyframes fizzle-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.player.attacking-tile { --lunge-dir: 58px; }
+.enemy.attacking-tile { --lunge-dir: -58px; }
+.player.heavy-move { --lunge-dir: 78px; }
+.enemy.heavy-move { --lunge-dir: -78px; }
+
+/* ===== Sprite base ===== */
+.sprite {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+
+/* ===== Knight sprites ===== */
+.sprite.knight.idle {
+  background-image: url('./Knight-Idle.png');
+  background-size: 600% 100%;
+  animation: knight-idle 1.2s steps(5) infinite;
+}
+.sprite.knight.sprite-attack {
+  background-image: url('./Knight-Attack01.png');
+  background-size: 900% 100%;
+  animation: knight-attack 0.7s steps(8) forwards;
+}
+.sprite.knight.sprite-heavy {
+  background-image: url('./Knight-Attack02.png');
+  background-size: 800% 100%;
+  animation: knight-heavy 0.7s steps(7) forwards;
+}
+.sprite.knight.sprite-hurt {
+  background-image: url('./Knight-Hurt.png');
+  background-size: 600% 100%;
+  animation: knight-hurt 0.5s steps(5) forwards;
+}
+.sprite.knight.sprite-charge {
+  background-image: url('./Knight-Run.png');
+  background-size: 800% 100%;
+  animation: knight-charge 0.6s steps(7) infinite;
+}
+.sprite.knight.sprite-block {
+  background-image: url('./Knight-Idle.png');
+  background-size: 600% 100%;
+  animation: none;
+  filter: brightness(1.25) drop-shadow(0 0 5px rgba(100, 180, 255, 0.5));
+  transform: scale(1.06);
+}
+.sprite.knight.fallen {
+  background-image: url('./Knight-Death.png');
+  background-size: 700% 100%;
+  animation: knight-death 0.8s steps(6) forwards;
+}
+
+/* ===== Wizard sprites ===== */
+.sprite.wizard.idle {
+  background-image: url('./Idle.png');
+  background-size: 600% 100%;
+  animation: wizard-idle 1.2s steps(5) infinite;
+}
+.sprite.wizard.sprite-attack {
+  background-image: url('./Attack01.png');
+  background-size: 1100% 100%;
+  animation: wizard-attack 0.7s steps(10) forwards;
+}
+.sprite.wizard.sprite-heavy {
+  background-image: url('./Attack02.png');
+  background-size: 1100% 100%;
+  animation: wizard-heavy 0.7s steps(10) forwards;
+}
+.sprite.wizard.sprite-hurt {
+  background-image: url('./Hurt.png');
+  background-size: 600% 100%;
+  animation: wizard-hurt 0.5s steps(5) forwards;
+}
+.sprite.wizard.sprite-charge {
+  background-image: url('./Run.png');
+  background-size: 800% 100%;
+  animation: wizard-charge 0.6s steps(7) infinite;
+}
+.sprite.wizard.sprite-block {
+  background-image: url('./Idle.png');
+  background-size: 600% 100%;
+  animation: none;
+  filter: brightness(1.25) drop-shadow(0 0 5px rgba(100, 180, 255, 0.5));
+  transform: scale(1.06);
+}
+.sprite.wizard.fallen {
+  background-image: url('./Death.png');
+  background-size: 700% 100%;
+  animation: wizard-death 0.8s steps(6) forwards;
+}
+
+/* ===== Keyframes ===== */
+@keyframes knight-idle {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes knight-attack {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes knight-heavy {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes knight-hurt {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes knight-charge {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes knight-death {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+
+@keyframes wizard-idle {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes wizard-attack {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes wizard-heavy {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes wizard-hurt {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes wizard-charge {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes wizard-death {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
