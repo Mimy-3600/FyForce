@@ -1,0 +1,146 @@
+.match-making {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+
+	top: 0;
+	left: 0;
+
+	background-color: #090c13;
+
+	background-image: 
+		radial-gradient(circle 300px at 40% 10%, #23335544, transparent),
+		radial-gradient(circle 200px at 60% 20%, #2b203044, transparent),
+		radial-gradient(circle 300px at bottom right, #23335544, transparent),
+		radial-gradient(circle 400px at 0% 70%, #23335544, transparent)
+	;
+
+	display: flex;
+	padding: 20px;
+}
+
+.match-making-container {
+	background-color: #fccc54;
+	width: 100%;
+	height: 100%;
+	border-radius: 10px;
+	background-color: #ffffff04;
+	backdrop-filter: blur(10px);
+	border: 1px solid #fff2;
+	display: flex;
+	position: relative;
+}
+
+.match-making-container-artifact {
+	width: 300px;
+	height: calc(100% - 20px);
+	background-color: #000000;
+	margin: 10px;
+	border-radius: 10px;
+	position: relative;
+	padding: 20px;
+}
+
+.match-making-container-artifact-in {
+	width: 300px;
+	height: 100%;
+	position: absolute;
+	border-radius: 10px;
+	top: 0;
+	left: 0;
+}
+
+.match-making-container-artifact-list {
+	position: absolute;
+	height: 100%;
+	width: 300px;
+}
+
+.match-making-container-artifact-list-i {
+	margin-top: 20px;
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.match-making-container-artifact-item {
+	height: 80px;
+	width: 80px;
+	border-radius: 5px;
+	cursor: pointer;
+	padding: 10px;
+}
+
+.match-making-container-artifact-item-stats {
+	font-family: nunitoSemiBold;
+	color: #5a8fdd;
+	background-color: #ddebff;
+	width: fit-content;
+	font-size: 10px;
+	padding: 0 10px;
+	border-radius: 10px;
+}
+
+.match-making-container-artifact-item-code {
+	color: white;
+	margin-bottom: 6px;
+	font-size: 10px;
+}
+
+.match-making-container-find {
+	width: calc(100% - 300px);
+	height: 100%;
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+}
+
+.match-making-container-find-account {
+	width: 350px;
+	height: 100%;
+	   align-content: center;
+    justify-items: center;
+}
+
+.match-making-container-find-vs {
+	width: 250px;
+	height: 100%;
+	text-align: center;
+	align-content: center;
+	justify-items: center;
+}
+
+.platform {
+	margin-top: 30px;
+	width: 150px;
+	height: 40px;
+	border-radius: 50%;
+	background-color: #090c13;
+	border: 2px solid #5a8fdd;
+}
+
+.vs {
+	height: 90px;
+	width: 150px;
+	font-size: 80px;
+	font-family: nunitoSemiBold;
+	color: #ff5a5a;
+
+}
+
+.match-making-container-find-side {
+	width: 200px;
+	height: 200px;
+	background-color: #090c13;
+
+	box-shadow:  0 0 0px 10px #5a8fdd33;
+	border-radius: 5px;
+	padding: 20px;
+}
+
+.match-making-container-find-side-picture {
+	width: 160px;
+	height: 160px;
+	background-color: #fccc54;
+	border-radius: 50%;
+}
