@@ -31,11 +31,10 @@ const initialLessons = [
 import LeaderBoard from "./components/Leaderboard/LeaderBoard";
 import Header from "./components/shared/Header";
 import Path from "./views/Path";
+import Inventory from "./components/Inventory/Inventory";
 
 // Composants temporaires pour éviter les erreurs si les fichiers n'existent pas encore
 const Home = () => <div>Page d'accueil</div>;
-const About = () => <div>À propos</div>;
-const Contact = () => <div>Contact</div>;
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -66,7 +65,7 @@ export default function App() {
 
       {currentView === 'welcome' && (
     <main >
-        <Header/>
+        {/* <Header/> */}
 
       {/* Affichage du message de bienvenue ou du formulaire*/}
       {showWelcome ? (
@@ -90,6 +89,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/leaderBoard" element={<LeaderBoard />} />
         <Route path="/path" element={<Path />}/>
+        <Route path="/inventory" element={<Inventory />}/>
+        <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />}/>
       </Routes>
     </main>
   );

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import account from '../assets/account.jpeg'
 
 function Path() {
-	const [ projectName, setProjectName ] = useState("FyForce")
+	const [ projectName, setProjectName ] = useState("Lamposcha")
 
 	return <div className="path">
 		<div className="path-container">
