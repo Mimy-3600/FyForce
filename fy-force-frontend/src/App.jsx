@@ -72,7 +72,7 @@ export default function App() {
             <p className="auth-subtitle">Ravi de te revoir !</p>
           </div>
         </div>
-      )}
+      )
 
       {/* Zone de contenu principale gérée UNIQUEMENT par React Router */}
       <div style={styles.content}>
