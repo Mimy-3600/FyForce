@@ -64,25 +64,24 @@ export default function App() {
       )}
 
       {currentView === 'welcome' && (
-    <main >
-        {/* <Header/> */}
+        
+        <Header/>
 
-      {/* Affichage du message de bienvenue ou du formulaire*/}
-      {showWelcome ? (
+      
+      ) } showWelcome ?? (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
             <h1 className="auth-title">Bienvenue, {user?.name}</h1>
             <p className="auth-subtitle">Identifiant : {user?.email}</p>
           </div>
         </div>
-      )}
+      )
 
-      {currentView === 'learning' && (
+      {currentView === 'learning' ? (
         <Learning lessonsData={initialLessons} />
-      )}
       ) : (
         <Login onLoginSuccess={handleLoginSuccess} />
-      )} */}
+      )}
 
       {/* Configuration des routes */}
       <Routes>
@@ -132,4 +131,5 @@ const styles = {
   nav: {
     marginBottom: "1rem",
   },
+}
 };
