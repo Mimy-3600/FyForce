@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Golem Battle</title>
+  <link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+<!--
+  This file is intentionally build-step-free: React + a JSX-in-browser
+  transpiler (Babel standalone) are loaded from a CDN, so you can just
+  open this file directly in a browser tab. Fine for learning/local play;
+  for production you'd normally run this through a real bundler (Vite, etc).
+-->
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+const WS_URL = "ws://localhost:8080";
+const CLASH_MS = 700; // must match the CSS animation durations below
+
+function HpBar({ hp, maxHp }) {
+  const pct = Math.max(0, (hp / maxHp) * 100);
+  return (
+    <div className="hpbar-track">
+      <div className="hpbar-fill" style={{ width: pct + "%" }}></div>
+    </div>
+  );
+}
+
+// turns this round's server-reported move into the CSS class that animates it
+function animClassFor(action) {
+  if (!action) return null;
+  if (action.move === "attack") return action.result === "not_ready" ? "fizzle" : "attacking";
+  if (action.move === "dodge") return "dodging";
+  if (action.move === "reload") return "reloading";
+  return null;
+}
+
+function Combatant({ side, label, data, anim, hit }) {
+  const classes = ["combatant", side, anim, hit ? "hit" : ""].filter(Boolean).join(" ");
+  return (
+    <div className={classes}>
+      <div className="combatant-label">{label}</div>
+      <div className={"core-orb" + (!data.canAttack ? " charging" : "")}></div>
+      <HpBar hp={data.hp} maxHp={data.maxHp} />
+      <div className="combatant-status">
+        {data.hp <= 0 ? "fallen" : data.canAttack ? "ready to attack" : "reloading"}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [connected, setConnected] = useState(false);
+  const [playerId, setPlayerId] = useState(null);
+  const [state, setState] = useState(null);      // what's actually rendered
+  const [anim, setAnim] = useState({ p1: null, p2: null, p1Hit: false, p2Hit: false });
+  const [log, setLog] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
+  const [notice, setNotice] = useState(null);
+  const wsRef = useRef(null);
+  const clashTimerRef = useRef(null);
+  const pendingGameOverRef = useRef(false);
+
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
+
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => setConnected(false);
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "assigned") {
+        setPlayerId(msg.id);
+        setGameOver(false);
+      } else if (msg.type === "state") {
+        if (msg.log && msg.log.length) setLog((prev) => [...prev, ...msg.log]);
+
+        if (msg.actions) {
+          // both players locked in — play the clash animation first, and
+          // only swap in the new hp/round/lock state once it's finished
+          pendingGameOverRef.current = false;
+          setAnim({
+            p1: animClassFor(msg.actions.p1),
+            p2: animClassFor(msg.actions.p2),
+            p1Hit: !!(msg.actions.p2 && msg.actions.p2.move === "attack" && msg.actions.p2.result === "hit"),
+            p2Hit: !!(msg.actions.p1 && msg.actions.p1.move === "attack" && msg.actions.p1.result === "hit"),
+          });
+          if (clashTimerRef.current) clearTimeout(clashTimerRef.current);
+          clashTimerRef.current = setTimeout(() => {
+            setAnim({ p1: null, p2: null, p1Hit: false, p2Hit: false });
+            setState(msg);
+            if (pendingGameOverRef.current) setGameOver(true);
+            clashTimerRef.current = null;
+          }, CLASH_MS);
+        } else {
+          setState(msg);
+        }
+      } else if (msg.type === "game_over") {
+        if (clashTimerRef.current) pendingGameOverRef.current = true;
+        else setGameOver(true);
+      } else if (msg.type === "full") {
+        setNotice("This match already has two players.");
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  function sendMove(move) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "move", move }));
+    }
+  }
+
+  if (notice) return <div className="center">{notice}</div>;
+  if (!connected) return <div className="center">Connecting to the arena...</div>;
+  if (!playerId) return <div className="center">Waiting for a player slot...</div>;
+  if (!state) return <div className="center">Waiting for match state...</div>;
+
+  const bothConnected = state.p1Connected && state.p2Connected;
+
+  if (!bothConnected) {
+    return (
+      <div className="game">
+        <h1>Golem Battle — You are Player {playerId}</h1>
+        <div className="waiting-arena">
+          <div className="waiting-orb"></div>
+          <div className="waiting-title">Awaiting a challenger...</div>
+          <div className="waiting-sub">Share the link with a friend — the match starts the moment they arrive.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const me = playerId === 1 ? state.p1 : state.p2;
+  const opp = playerId === 1 ? state.p2 : state.p1;
+  const myAnim = playerId === 1 ? anim.p1 : anim.p2;
+  const oppAnim = playerId === 1 ? anim.p2 : anim.p1;
+  const myHit = playerId === 1 ? anim.p1Hit : anim.p2Hit;
+  const oppHit = playerId === 1 ? anim.p2Hit : anim.p1Hit;
+  const locked = me.locked;
+  const clashing = !!(anim.p1 || anim.p2);
+
+  return (
+    <div className="game">
+      <h1>Golem Battle — You are Player {playerId}</h1>
+
+      <div className="arena">
+        <Combatant side="player" label="You" data={me} anim={myAnim} hit={myHit} />
+        <div className="vs">VS</div>
+        <Combatant side="enemy" label="Opponent" data={opp} anim={oppAnim} hit={oppHit} />
+      </div>
+
+      <div className="status-row">
+        <span>Round {state.round}</span>
+      </div>
+
+      {gameOver && <div className="over-banner">Match over — a new one starts automatically.</div>}
+
+      <div className="buttons">
+        <button className="attack" disabled={locked || gameOver} onClick={() => sendMove("attack")}>Attack</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("dodge")}>Dodge</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("reload")}>Reload</button>
+      </div>
+
+      {!gameOver && clashing && (
+        <p className="waiting">The golems clash...</p>
+      )}
+      {!gameOver && !clashing && locked && (
+        <p className="waiting">Move locked in — waiting on your opponent...</p>
+      )}
+
+      <h3>Battle log</h3>
+      <div className="log">
+        {log.map((line, i) => <div key={i}>{line}</div>)}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
