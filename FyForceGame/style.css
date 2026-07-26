@@ -118,13 +118,23 @@ h1 {
   100% { opacity: 0; }
 }
 
+/* ---------- round timer ---------- */
+.round-timer {
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 14px;
+}
+.round-timer.urgent { color: var(--blood); opacity: 0.9; }
+
 /* ---------- arena ---------- */
 .arena {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .vs {
   font-size: 0.85rem;
@@ -204,13 +214,13 @@ h1 {
 .sprite.wizard.fallen { background-position: 0px -768px; }
 
 .sprite.knight.sprite-attack { animation: knight-attack 0.7s steps(1) forwards; }
-.sprite.knight.sprite-dodge { animation: knight-dodge 0.6s steps(1) forwards; }
-.sprite.knight.sprite-reload { animation: knight-reload 0.7s steps(1) forwards; }
+.sprite.knight.sprite-block { animation: knight-block 0.6s steps(1) forwards; }
+.sprite.knight.sprite-charge { animation: knight-charge 0.7s steps(1) forwards; }
 .sprite.knight.sprite-hurt { animation: knight-hurt 0.5s steps(1) forwards; }
 
 .sprite.wizard.sprite-attack { animation: wizard-attack 0.7s steps(1) forwards; }
-.sprite.wizard.sprite-dodge { animation: wizard-dodge 0.6s steps(1) forwards; }
-.sprite.wizard.sprite-reload { animation: wizard-reload 0.7s steps(1) forwards; }
+.sprite.wizard.sprite-block { animation: wizard-block 0.6s steps(1) forwards; }
+.sprite.wizard.sprite-charge { animation: wizard-charge 0.7s steps(1) forwards; }
 .sprite.wizard.sprite-hurt { animation: wizard-hurt 0.5s steps(1) forwards; }
 
 @keyframes knight-idle {
@@ -231,14 +241,14 @@ h1 {
   75% { background-position: -784px -256px; }
   100% { background-position: -784px -256px; }
 }
-@keyframes knight-dodge {
+@keyframes knight-block {
   0%  { background-position: -448px -384px; animation-timing-function: steps(1); }
   25% { background-position: -560px -384px; animation-timing-function: steps(1); }
   50% { background-position: -672px -384px; animation-timing-function: steps(1); }
   75% { background-position: -784px -384px; }
   100% { background-position: -784px -384px; }
 }
-@keyframes knight-reload {
+@keyframes knight-charge {
   0%  { background-position: 0px -128px; animation-timing-function: steps(1); }
   25% { background-position: -112px -128px; animation-timing-function: steps(1); }
   50% { background-position: -224px -128px; animation-timing-function: steps(1); }
@@ -269,14 +279,14 @@ h1 {
   75% { background-position: -768px -256px; }
   100% { background-position: -768px -256px; }
 }
-@keyframes wizard-dodge {
+@keyframes wizard-block {
   0%  { background-position: -384px -384px; animation-timing-function: steps(1); }
   25% { background-position: -512px -384px; animation-timing-function: steps(1); }
   50% { background-position: -640px -384px; animation-timing-function: steps(1); }
   75% { background-position: -768px -384px; }
   100% { background-position: -768px -384px; }
 }
-@keyframes wizard-reload {
+@keyframes wizard-charge {
   0%  { background-position: 0px -128px; animation-timing-function: steps(1); }
   25% { background-position: -128px -128px; animation-timing-function: steps(1); }
   50% { background-position: -256px -128px; animation-timing-function: steps(1); }
@@ -313,17 +323,12 @@ h1 {
   opacity: 0.6;
   letter-spacing: 0.02em;
 }
-.status-row {
-  display: flex;
-  justify-content: center;
-  font-size: 0.85rem;
-  opacity: 0.7;
-  margin-bottom: 20px;
-}
 
 /* clash animations (whole-tile movement) */
 .combatant.player.attacking-tile { animation: lunge-right 0.7s ease; }
 .combatant.enemy.attacking-tile { animation: lunge-left 0.7s ease; }
+.combatant.player.attacking-tile.heavy-move { animation: lunge-right-heavy 0.7s ease; }
+.combatant.enemy.attacking-tile.heavy-move { animation: lunge-left-heavy 0.7s ease; }
 @keyframes lunge-right {
   0% { transform: translateX(0); }
   40% { transform: translateX(20px); }
@@ -334,12 +339,15 @@ h1 {
   40% { transform: translateX(-20px); }
   100% { transform: translateX(0); }
 }
-.combatant.dodging-tile { animation: evade 0.6s ease; }
-@keyframes evade {
-  0% { transform: translateX(0); }
-  30% { transform: translateX(-12px); }
-  60% { transform: translateX(8px); }
-  100% { transform: translateX(0); }
+@keyframes lunge-right-heavy {
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  40% { transform: translateX(34px) scale(1.05); filter: brightness(1.25); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); }
+}
+@keyframes lunge-left-heavy {
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  40% { transform: translateX(-34px) scale(1.05); filter: brightness(1.25); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); }
 }
 .combatant.fizzle-tile { animation: fizzle-shake 0.5s ease; }
 @keyframes fizzle-shake {
@@ -347,13 +355,18 @@ h1 {
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
 }
+.combatant.charge-tile { animation: charge-pulse 0.7s ease; }
+@keyframes charge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
 
-.buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
 button {
   font-family: inherit;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
-  padding: 14px 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  padding: 14px 6px;
   background: var(--stone-800);
   border: 1px solid var(--stone-700);
   color: var(--bone);
@@ -363,7 +376,8 @@ button {
 }
 button:hover:not(:disabled) { background: var(--stone-700); transform: translateY(-1px); }
 button:disabled { opacity: 0.35; cursor: not-allowed; }
-button.attack { border-color: var(--ember); }
+button.light { border-color: var(--ember); }
+button.heavy { border-color: var(--blood); }
 .waiting { text-align: center; font-style: italic; opacity: 0.7; margin: 0; }
 .over-banner {
   text-align: center;

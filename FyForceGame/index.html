@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Golem Battle</title>
+<title>Fighter's Arena</title>
   <link rel="stylesheet" type="text/css" href="./style.css">
 </head>
 <body>
@@ -36,24 +36,26 @@ function HpBar({ hp, maxHp }) {
   );
 }
 
-// which sprite animation should play this round, from the server's per-player action
-// "hit" always wins — getting hit interrupts whatever you were doing
+// which sprite animation should play this round, from the server's per-player action.
+// getting hit always wins — it interrupts whatever you were doing.
 function spriteClassFor(action, wasHit) {
   if (wasHit) return "sprite-hurt";
   if (!action) return null;
-  if (action.move === "attack" && action.result !== "not_ready") return "sprite-attack";
-  if (action.move === "dodge") return "sprite-dodge";
-  if (action.move === "reload") return "sprite-reload";
-  return null; // covers a fizzled ("not_ready") attack — sprite stays idle, tile still shakes
+  if (action.move === "light") return "sprite-attack";
+  if (action.move === "heavy") return action.result === "fizzled" ? null : "sprite-attack";
+  if (action.move === "block") return "sprite-block";
+  if (action.move === "charge") return "sprite-charge";
+  return null;
 }
 
-// the whole-tile movement (lunge forward / evade sideways / stumble) is independent
-// of the sprite's own animation, so a fizzled attack can still shake the tile
+// the whole-tile movement (lunge forward / shake / pulse) is independent of
+// the sprite's own animation, so a fizzled heavy attack can still shake the tile
 function tileClassFor(action) {
   if (!action) return null;
-  if (action.move === "attack") return action.result === "not_ready" ? "fizzle-tile" : "attacking-tile";
-  if (action.move === "dodge") return "dodging-tile";
-  return null;
+  if (action.move === "light") return "attacking-tile";
+  if (action.move === "heavy") return action.result === "fizzled" ? "fizzle-tile" : "attacking-tile heavy-move";
+  if (action.move === "charge") return "charge-tile";
+  return null; // block holds its ground
 }
 
 function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
@@ -63,7 +65,7 @@ function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
   return (
     <div className={tileClasses}>
       <div className="combatant-label">
-        <span className={"core-orb" + (!data.canAttack && !fallen ? " charging" : "")}></span>
+        <span className={"core-orb" + (data.charge < 1 && !fallen ? " charging" : "")}></span>
         {label}
       </div>
       <div className={"sprite-stage " + kind}>
@@ -73,7 +75,7 @@ function Combatant({ side, kind, label, data, tileAnim, spriteAnim }) {
       </div>
       <HpBar hp={data.hp} maxHp={data.maxHp} />
       <div className="combatant-status">
-        {fallen ? "fallen" : data.canAttack ? "ready to attack" : "reloading"}
+        {fallen ? "fallen" : data.charge >= 1 ? "heavy ready" : "charging"}
       </div>
     </div>
   );
@@ -87,6 +89,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [notice, setNotice] = useState(null);
   const [roundBanner, setRoundBanner] = useState(null);
+  const [now, setNow] = useState(Date.now());
   const wsRef = useRef(null);
   const clashTimerRef = useRef(null);
   const pendingGameOverRef = useRef(false);
@@ -112,10 +115,10 @@ function App() {
           // only swap in the new hp/round/lock state once it's finished
           pendingGameOverRef.current = false;
           setAnim({
-            p1: animClassPairFor(msg.actions.p1),
-            p2: animClassPairFor(msg.actions.p2),
-            p1Hit: !!(msg.actions.p2 && msg.actions.p2.move === "attack" && msg.actions.p2.result === "hit"),
-            p2Hit: !!(msg.actions.p1 && msg.actions.p1.move === "attack" && msg.actions.p1.result === "hit"),
+            p1: msg.actions.p1 || null,
+            p2: msg.actions.p2 || null,
+            p1Hit: !!(msg.actions.p2 && msg.actions.p2.damage > 0),
+            p2Hit: !!(msg.actions.p1 && msg.actions.p1.damage > 0),
           });
           if (clashTimerRef.current) clearTimeout(clashTimerRef.current);
           clashTimerRef.current = setTimeout(() => {
@@ -153,9 +156,11 @@ function App() {
     }
   }, [state]);
 
-  function animClassPairFor(action) {
-    return action || null;
-  }
+  // ticks once a second so the 30s lock-in countdown stays live
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   function sendMove(move) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -173,7 +178,7 @@ function App() {
   if (!bothConnected) {
     return (
       <div className="game">
-        <h1>Golem Battle — You are Player {playerId}</h1>
+        <h1>Fighter's Arena — You are Player {playerId}</h1>
         <div className="waiting-arena">
           <div className="waiting-orb"></div>
           <div className="waiting-title">Awaiting a challenger...</div>
@@ -185,16 +190,19 @@ function App() {
 
   const me = playerId === 1 ? state.p1 : state.p2;
   const opp = playerId === 1 ? state.p2 : state.p1;
+  const myKind = playerId === 1 ? "knight" : "wizard";
+  const oppKind = playerId === 1 ? "wizard" : "knight";
   const myAction = playerId === 1 ? anim.p1 : anim.p2;
   const oppAction = playerId === 1 ? anim.p2 : anim.p1;
   const myHit = playerId === 1 ? anim.p1Hit : anim.p2Hit;
   const oppHit = playerId === 1 ? anim.p2Hit : anim.p1Hit;
   const locked = me.locked;
   const clashing = !!(anim.p1 || anim.p2);
+  const secondsLeft = state.deadline ? Math.max(0, Math.ceil((state.deadline - now) / 1000)) : null;
 
   return (
     <div className="game">
-      <h1>Golem Battle — You are Player {playerId}</h1>
+      <h1>Fighter's Arena — You are Player {playerId}</h1>
 
       {roundBanner !== null && (
         <div className="round-banner" key={roundBanner}>
@@ -203,14 +211,20 @@ function App() {
         </div>
       )}
 
+      {!gameOver && secondsLeft !== null && (
+        <div className={"round-timer" + (secondsLeft <= 10 ? " urgent" : "")}>
+          Lock in within {secondsLeft}s
+        </div>
+      )}
+
       <div className="arena">
         <Combatant
-          side="player" kind="knight" label="You" data={me}
+          side="player" kind={myKind} label="You" data={me}
           tileAnim={tileClassFor(myAction)} spriteAnim={spriteClassFor(myAction, myHit)}
         />
         <div className="vs">VS</div>
         <Combatant
-          side="enemy" kind="wizard" label="Opponent" data={opp}
+          side="enemy" kind={oppKind} label="Opponent" data={opp}
           tileAnim={tileClassFor(oppAction)} spriteAnim={spriteClassFor(oppAction, oppHit)}
         />
       </div>
@@ -218,13 +232,14 @@ function App() {
       {gameOver && <div className="over-banner">Match over — a new one starts automatically.</div>}
 
       <div className="buttons">
-        <button className="attack" disabled={locked || gameOver} onClick={() => sendMove("attack")}>Attack</button>
-        <button disabled={locked || gameOver} onClick={() => sendMove("dodge")}>Dodge</button>
-        <button disabled={locked || gameOver} onClick={() => sendMove("reload")}>Reload</button>
+        <button className="light" disabled={locked || gameOver} onClick={() => sendMove("light")}>Light</button>
+        <button className="heavy" disabled={locked || gameOver || me.charge < 1} onClick={() => sendMove("heavy")}>Heavy</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("block")}>Block</button>
+        <button disabled={locked || gameOver} onClick={() => sendMove("charge")}>Charge</button>
       </div>
 
       {!gameOver && clashing && (
-        <p className="waiting">The golems clash...</p>
+        <p className="waiting">The fighters clash...</p>
       )}
       {!gameOver && !clashing && locked && (
         <p className="waiting">Move locked in — waiting on your opponent...</p>
