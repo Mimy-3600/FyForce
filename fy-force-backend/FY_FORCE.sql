@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : dim. 26 juil. 2026 à 03:01
+-- Généré le : dim. 26 juil. 2026 à 09:12
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -76,7 +76,31 @@ INSERT INTO `correspondre` (`ID_REPONSE`, `ID_QUESTION`, `CORRECT`) VALUES
 (75, 25, 0),
 (76, 25, 0),
 (77, 25, 1),
-(78, 25, 0);
+(78, 25, 0),
+(79, 26, 0),
+(80, 26, 1),
+(81, 26, 0),
+(82, 27, 0),
+(83, 27, 1),
+(84, 27, 0),
+(85, 28, 0),
+(86, 28, 1),
+(87, 28, 0),
+(88, 29, 1),
+(89, 29, 0),
+(90, 29, 0),
+(91, 30, 1),
+(92, 30, 0),
+(93, 30, 0),
+(94, 31, 0),
+(95, 31, 1),
+(96, 31, 0),
+(97, 32, 0),
+(98, 32, 1),
+(99, 32, 0),
+(100, 33, 0),
+(101, 33, 0),
+(102, 33, 1);
 
 -- --------------------------------------------------------
 
@@ -141,7 +165,11 @@ INSERT INTO `generer` (`ID_MODULE`, `ID_QUIZ`) VALUES
 (11, 11),
 (12, 12),
 (13, 13),
-(14, 14);
+(14, 14),
+(15, 15),
+(16, 16),
+(17, 17),
+(18, 18);
 
 -- --------------------------------------------------------
 
@@ -171,7 +199,8 @@ CREATE TABLE `lecon` (
 --
 
 INSERT INTO `lecon` (`ID_LECON`, `NOM_LECON`, `TERMINE`) VALUES
-(2, 'Apprendre le node js', 0);
+(2, 'Apprendre le node js', 0),
+(3, 'Apprendre le node js', 0);
 
 -- --------------------------------------------------------
 
@@ -195,7 +224,11 @@ INSERT INTO `module` (`ID_MODULE`, `NOM_MODULE`, `CONTENU_MODULE`, `NIVEAU_MODUL
 (11, 'Introduction à Node.js et Installation', 'Node.js est un environnement d\'exécution JavaScript côté serveur, bâti sur le moteur V8 de Google Chrome. Il permet d\'exécuter d', 1, 0),
 (12, 'Le système de modules (CommonJS et ES Modules)', 'Node.js utilise un système de modules pour découper le code en fichiers réutilisables. Historiquement, Node.js utilise le format', 2, 0),
 (13, 'L\'Event Loop et l\'Asynchronisme', 'L\'Event Loop (boucle d\'événements) est le cœur de Node.js. Bien que Node.js s\'exécute sur un seul thread (mono-thread), l\'Event ', 3, 0),
-(14, 'Création d\'une API REST avec Express.js', 'Express est le framework web minimaliste et flexible le plus populaire pour Node.js. Il facilite la création de serveurs web, la', 4, 0);
+(14, 'Création d\'une API REST avec Express.js', 'Express est le framework web minimaliste et flexible le plus populaire pour Node.js. Il facilite la création de serveurs web, la', 4, 0),
+(15, 'Introduction à Node.js et Installation', 'Node.js est un environnement d\'exécution JavaScript côté serveur, bâti sur le moteur V8 de Google Chrome. Il permet d\'exécuter d', 1, 0),
+(16, 'Gestion des Modules et NPM', 'Node.js s\'appuie sur une architecture modulaire. Historiquement, il utilise le système CommonJS avec \'require()\' et \'module.expo', 2, 0),
+(17, 'Programmation Asynchrone et Event Loop', 'Le cœur de Node.js repose sur l\'Event Loop (boucle d\'événements) et un modèle monothread. Les opérations lourdes (lecture de fic', 3, 0),
+(18, 'Créer une API REST avec Express.js', 'Express.js est le framework web le plus populaire pour Node.js. Il simplifie la création de serveurs HTTP et la mise en place d\'', 4, 0);
 
 -- --------------------------------------------------------
 
@@ -259,7 +292,15 @@ INSERT INTO `question` (`ID_QUESTION`, `LIBELLE_QUESTION`) VALUES
 (22, 'Node.js exécute le code utilisateur sur combien de threads principaux ?'),
 (23, 'Quelle structure moderne permet de traiter l\'asynchronisme de manière lisible ?'),
 (24, 'Qu\'est-ce qu\'un middleware dans Express ?'),
-(25, 'Quelle méthode HTTP est généralement utilisée pour créer une nouvelle ressource ?');
+(25, 'Quelle méthode HTTP est généralement utilisée pour créer une nouvelle ressource ?'),
+(26, 'Qu\'est-ce que Node.js ?'),
+(27, 'Quel moteur JavaScript est utilisé par Node.js ?'),
+(28, 'Quelle fonction CommonJS permet d\'importer un module dans Node.js ?'),
+(29, 'Quel fichier contient la liste des dépendances d\'un projet Node.js ?'),
+(30, 'Quel est le principal avantage de l\'Event Loop et des E/S non bloquantes ?'),
+(31, 'Quelle syntaxe permet de traiter une promesse de façon plus lisible et linéaire ?'),
+(32, 'Qu\'est-ce qu\'un middleware dans Express ?'),
+(33, 'Quel verbe HTTP est généralement utilisé pour créer une nouvelle ressource ?');
 
 -- --------------------------------------------------------
 
@@ -280,7 +321,11 @@ INSERT INTO `quiz` (`ID_QUIZ`, `TITRE_QUIZ`) VALUES
 (11, 'Quiz sur les bases de Node.js'),
 (12, 'Quiz sur les Modules'),
 (13, 'Quiz sur l\'Event Loop et l\'asynchronisme'),
-(14, 'Quiz Express.js');
+(14, 'Quiz Express.js'),
+(15, 'Quiz : Les bases de Node.js'),
+(16, 'Quiz : Modules et NPM'),
+(17, 'Quiz : L\'asynchronisme dans Node.js'),
+(18, 'Quiz : Express.js et API REST');
 
 -- --------------------------------------------------------
 
@@ -312,7 +357,11 @@ INSERT INTO `regrouper` (`ID_LECON`, `ID_MODULE`) VALUES
 (2, 11),
 (2, 12),
 (2, 13),
-(2, 14);
+(2, 14),
+(3, 15),
+(3, 16),
+(3, 17),
+(3, 18);
 
 -- --------------------------------------------------------
 
@@ -356,7 +405,31 @@ INSERT INTO `reponse` (`ID_REPONSE`, `LIBELLE_REPONSE`) VALUES
 (75, 'GET'),
 (76, 'PUT'),
 (77, 'POST'),
-(78, 'DELETE');
+(78, 'DELETE'),
+(79, 'Un framework CSS pour le design web'),
+(80, 'Un environnement d\'exécution JavaScript côté serveur'),
+(81, 'Une base de données relationnelle'),
+(82, 'SpiderMonkey'),
+(83, 'V8'),
+(84, 'Chakra'),
+(85, 'importModule()'),
+(86, 'require()'),
+(87, 'include()'),
+(88, 'package.json'),
+(89, 'node_modules.json'),
+(90, 'config.js'),
+(91, 'Traiter d\'autres requêtes pendant qu\'une opération longue s\'exécute'),
+(92, 'Exécuter le code plus rapidement qu\'en C++'),
+(93, 'Forcer l\'exécution synchrone de toutes les tâches'),
+(94, 'try/catch direct'),
+(95, 'async/await'),
+(96, 'defer/stream'),
+(97, 'Une base de données temporaire'),
+(98, 'Une fonction interceptant et traitant la requête avant de passer à la suivante'),
+(99, 'Un compilateur JavaScript'),
+(100, 'GET'),
+(101, 'PUT'),
+(102, 'POST');
 
 -- --------------------------------------------------------
 
@@ -390,7 +463,7 @@ CREATE TABLE `user` (
   `EMAIL_USER` varchar(128) NOT NULL,
   `NOM_USER` varchar(128) NOT NULL,
   `PRENOM_USER` varchar(128) NOT NULL,
-  `PHOTO_USER` longblob NOT NULL,
+  `PHOTO_USER` varchar(255) NOT NULL,
   `PASSWORD_USER` varchar(128) NOT NULL,
   `XP_USER` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -418,7 +491,15 @@ INSERT INTO `utiliser` (`ID_QUESTION`, `ID_QUIZ`) VALUES
 (22, 13),
 (23, 13),
 (24, 14),
-(25, 14);
+(25, 14),
+(26, 15),
+(27, 15),
+(28, 16),
+(29, 16),
+(30, 17),
+(31, 17),
+(32, 18),
+(33, 18);
 
 --
 -- Index pour les tables déchargées
@@ -603,13 +684,13 @@ ALTER TABLE `item`
 -- AUTO_INCREMENT pour la table `lecon`
 --
 ALTER TABLE `lecon`
-  MODIFY `ID_LECON` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID_LECON` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `module`
 --
 ALTER TABLE `module`
-  MODIFY `ID_MODULE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `ID_MODULE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `notification`
@@ -621,19 +702,19 @@ ALTER TABLE `notification`
 -- AUTO_INCREMENT pour la table `question`
 --
 ALTER TABLE `question`
-  MODIFY `ID_QUESTION` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `ID_QUESTION` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT pour la table `quiz`
 --
 ALTER TABLE `quiz`
-  MODIFY `ID_QUIZ` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `ID_QUIZ` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `reponse`
 --
 ALTER TABLE `reponse`
-  MODIFY `ID_REPONSE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `ID_REPONSE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
 -- Contraintes pour les tables déchargées
