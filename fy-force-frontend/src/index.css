@@ -4,6 +4,7 @@
   /* Définition de votre couleur personnalisée */
   --color-bg: #1f1f1f;
   --color-primary: #f2bb13;
+  --color-secondary: #B497CF;
 }
 :root{
   --bg-primary: #000000e0;
