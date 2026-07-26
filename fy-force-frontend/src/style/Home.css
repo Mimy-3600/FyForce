@@ -46,10 +46,14 @@ body {
 	overflow: hidden;
 }
 
-.home-container-3d {
+.home-container-action-sign {
+	position: fixed;
 	height: 100%;
 	width: 40%;
-	border-radius: 0 10px 10px 0;
+	border-radius: 0 10px 10px 0;	
+	padding-top: 200px;
+	text-align: end;
+	justify-items: self-end;
 }
 
 .home-container-name {
@@ -111,4 +115,24 @@ body {
 	top: 0;
 	left: 0;
 	z-index: -2;
+}
+
+.cursor-target {
+	height: 50px;
+	width: 140px;
+	border-radius: 9px;
+	margin-left: 14px;
+}
+
+.cursor-target.Login {
+	background-color: #000000;
+	color: white;
+	border: none;
+	font-size: 18px;
+}
+.cursor-target.Register {
+	background-color: #ffffff33;
+	border: none;
+	height: 40px;
+	width: 110px;
 }

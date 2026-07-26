@@ -1,17 +1,32 @@
 import '../style/Home.css'
 import { Model as Artifact } from '../../Artifact.jsx'
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useRef, useEffect } from 'react';
+import { Suspense, useRef, useEffect, useState } from 'react';
 import { OrbitControls, Environment, Lightformer } from '@react-three/drei';
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { animate, createScope } from 'animejs'
+import TargetCursor from '../reactbits/TargetCursor';
 
 function Home() {
 
 	const scope = useRef(null)
 	const root = useRef(null)
 
+	const [ actual, setActual ] = useState(0)
+
+	const handleWheel = (e) => {
+		if(e.deltaY > 0 && actual === 0) {
+			const scrollDownEvent = new CustomEvent("scroll-down-event")
+			window.dispatchEvent(scrollDownEvent)
+		}
+		if(e.deltaY < 0 && actual === 1) {
+			const scrollUpEvent = new CustomEvent("scroll-up-event")
+			window.dispatchEvent(scrollUpEvent)
+		}
+	}
+
 	useEffect(() => {
+
 		if(!root.current) return
 
 		const scope = createScope({ root }).add(self => {
@@ -22,10 +37,77 @@ function Home() {
 				y: -100,
   				ease: 'inOut(2.38)'
 			})
+
+			animate('.home-container-action-sign', {
+				duration: 0,
+				y: '100%',
+				x: '230%',
+			})
 		})
+
+		const scrollDown = () => {
+			setActual(1)
+			const scope = createScope({ root }).add(self => {
+				animate('.home-container-3d-artifact', {
+					duration: 1000,
+					y: -500,
+					x: -500,
+					ease: 'inOut(2.38)'
+				})
+
+				animate('.home-container-info', {
+					duration: 1000,
+					background: 'transparent',
+					y: '-100%',
+					x: '-500px',
+					ease: 'inOut(2.38)'
+				})
+
+				animate('.home-container-action-sign', {
+					duration: 1000,
+					y: '0',
+					x: '130%',
+					ease: 'inOut(2.38)'
+				})
+				
+			})
+		}
+
+		const scrollUp = () => {
+			setActual(0)
+			const scope = createScope({ root }).add(self => {
+				animate('.home-container-3d-artifact', {
+					duration: 1000,
+					y: -100,
+					x: 0,
+					ease: 'inOut(2.38)'
+				})
+				animate('.home-container-info', {
+					duration: 1000,
+					background: 'linear-gradient(90deg, #000000, transparent)',
+					y: 0,
+					x: 0,
+					ease: 'inOut(2.38)'
+				})
+				animate('.home-container-action-sign', {
+					duration: 1000,
+					y: '100%',
+					x: '230%',
+					ease: 'inOut(2.38)'
+				})
+			})
+		}
+
+		window.addEventListener('scroll-down-event', scrollDown)
+		window.addEventListener('scroll-up-event', scrollUp)
+
+		return () => {
+			window.removeEventListener('scroll-up-event', scrollUp)
+			window.removeEventListener('scroll-down-event', scrollDown)
+		}
 	}, [])
 
-	return <div className='main-container' ref={root}>
+	return <div className='main-container' ref={root} onWheel={handleWheel}>
 		<div className='home-container'>
 
 			<div className="home-container-info">
@@ -55,8 +137,28 @@ function Home() {
 				<div style={{flex: 1}}></div>
 				<div className='home-container-extra'></div>
 			</div>
-			<div className="home-container-3d">
-				
+
+			<div className="home-container-action-sign">
+				<div className='home-container-slogan'>
+					START ? <br/> SIGN OR LOGIN<br/>
+					<span className='linear-text'>Lampochka</span>
+				</div>
+				<div className='home-container-description'>
+					Log in your account to start a new quest and challenge users ...	
+				</div>
+
+				<div>
+		    		<TargetCursor 
+				        spinDuration={2}
+				        hideDefaultCursor
+				        parallaxOn
+					    hoverDuration={0.2}
+					    cursorColor="#ffffff"
+					    cursorColorOnTarget="#B497CF"
+					/>
+			      <button className="cursor-target Login">Login</button>
+			      <button className="cursor-target Register">Register</button>
+			    </div>
 			</div>
 		</div>
 
