@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import  {useState} from "react"
 import LessonList from './LessonList'
 import ModelViewer from './ModelViewer'
 import ProgressBar from'./ProgressBar'

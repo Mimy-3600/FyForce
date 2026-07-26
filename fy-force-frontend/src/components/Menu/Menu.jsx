@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import InfiniteMenu from '../InfiniteMenu';
 
+
 export default function Menu() {
   const navigate = useNavigate();
 
