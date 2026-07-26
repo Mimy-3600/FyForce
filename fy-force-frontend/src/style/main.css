@@ -1,0 +1,32 @@
+@font-face {
+  font-family: 'nunitoRegular';
+  src: url('../assets/fonts/Nunito-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'nunitoMedium';
+  src: url('../assets/fonts/Nunito-Medium.ttf');
+}
+
+@font-face {
+  font-family: 'nunitoLight';
+  src: url('../assets/fonts/Nunito-Light.ttf');
+}
+
+@font-face {
+  font-family: 'nunitoSemiBold';
+  src: url('../assets/fonts/Nunito-SemiBold.ttf');
+}
+
+
+* {
+	font-family: nunitoRegular;
+}
+
+body {
+	background-color: #f9f9f9;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+}
