@@ -14,7 +14,7 @@ const Header = () => {
           to="/" 
           className="text-xl font-bold text-secondary transition-colors hover:text-secondary/80"
         >
-          MonApp
+          Lamposcha
         </Link>
 
         {/* Section droite */}
