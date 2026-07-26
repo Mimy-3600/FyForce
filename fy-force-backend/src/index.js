@@ -1,5 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import 'dotenv/config';
+import '../genpath.js';
+import {converser} from '../conversation.js';
+import {GoogleGenAI} from '@google/genai'
 import cors from 'cors';
 import morgan from 'morgan';
 import fs from 'fs'
@@ -10,6 +14,7 @@ import path from 'path';
 dotenv.config();
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares de Sécurité et Utilitaires ---
@@ -21,6 +26,7 @@ app.use(express.json()); // Permet de lire le format JSON dans req.body
 app.get('/', (req, res) => {
   res.json({ message: "Votre backend Node.js + MySQL est sécurisé et opérationnel !" });
 });
+app.post('/api/chat-ai', converser);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const routesDir = path.join(__dirname, 'routes');
