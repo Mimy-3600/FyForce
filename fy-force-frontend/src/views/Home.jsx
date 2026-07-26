@@ -6,9 +6,11 @@ import { OrbitControls, Environment, Lightformer } from '@react-three/drei';
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { animate, createScope } from 'animejs'
 import TargetCursor from '../reactbits/TargetCursor';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
 
+	const navigate = useNavigate()
 	const scope = useRef(null)
 	const root = useRef(null)
 
@@ -156,7 +158,7 @@ function Home() {
 					    cursorColor="#ffffff"
 					    cursorColorOnTarget="#B497CF"
 					/>
-			      <button className="cursor-target Login">Login</button>
+			      <button className="cursor-target Login" onClick={()=>navigate("/menu")}>Login</button>
 			      <button className="cursor-target Register">Register</button>
 			    </div>
 			</div>

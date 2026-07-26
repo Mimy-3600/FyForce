@@ -9,6 +9,7 @@ import Inventory from "./components/Inventory/Inventory";
 import GenPath from "./components/GeneratePath/GenPath";
 import Menu from "./components/Menu/Menu";
 import Craft from "./components/Craft/Craft";
+import Home from "./views/Home";
 
 const initialLessons = [
   {
@@ -45,11 +46,9 @@ export default function App() {
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setShowWelcome(true);
-    // Redirige vers le menu ou les leçons après connexion
     navigate("/");
   };
 
-  // Minuteur de 3 secondes pour masquer le message d'accueil
   useEffect(() => {
     if (showWelcome) {
       const timer = setTimeout(() => {
@@ -64,7 +63,6 @@ export default function App() {
     <div style={styles.container}>
       <Header />
 
-      {/* Message de bienvenue temporaire après connexion */}
       {showWelcome && user && (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
@@ -74,24 +72,21 @@ export default function App() {
         </div>
       )}
 
-      {/* Zone de contenu principale gérée UNIQUEMENT par React Router */}
       <div style={styles.content}>
         <Routes>
-          <Route path="/" element={<Menu />} />
+          {/* Menu accessible directement, plus besoin d'être connecté */}
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
           <Route path="/learning/:idLesson" element={<Learning lessonsData={initialLessons} />} />
           <Route path="/leaderBoard" element={<LeaderBoard />} />
           <Route path="/path" element={<Path />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/genPath" element={<GenPath />} />
           <Route path="/craft" element={<Craft />} />
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />} 
-          />
+          {/* /login reste accessible librement, sans redirection forcée */}
+          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </div>
-
-      {/* <Footer /> */}
     </div>
   );
 }
