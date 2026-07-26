@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : dim. 26 juil. 2026 à 01:34
+-- Généré le : dim. 26 juil. 2026 à 03:01
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -50,57 +50,33 @@ CREATE TABLE `correspondre` (
 --
 
 INSERT INTO `correspondre` (`ID_REPONSE`, `ID_QUESTION`, `CORRECT`) VALUES
-(1, 1, 0),
-(2, 1, 1),
-(3, 1, 0),
-(4, 2, 1),
-(5, 2, 0),
-(6, 2, 0),
-(7, 3, 0),
-(8, 3, 1),
-(9, 3, 0),
-(10, 4, 0),
-(11, 4, 1),
-(12, 4, 0),
-(13, 5, 0),
-(14, 5, 1),
-(15, 5, 0),
-(16, 6, 1),
-(17, 6, 0),
-(18, 6, 0),
-(19, 7, 0),
-(20, 7, 1),
-(21, 7, 0),
-(22, 8, 0),
-(23, 8, 1),
-(24, 8, 0),
-(25, 9, 1),
-(26, 9, 0),
-(27, 9, 0),
-(28, 10, 0),
-(29, 10, 1),
-(30, 10, 0),
-(31, 11, 0),
-(32, 11, 1),
-(33, 11, 0),
-(34, 12, 1),
-(35, 12, 0),
-(36, 12, 0),
-(37, 13, 0),
-(38, 13, 1),
-(39, 13, 0),
-(40, 14, 0),
-(41, 14, 1),
-(42, 14, 0),
-(43, 15, 1),
-(44, 15, 0),
-(45, 15, 0),
-(46, 16, 0),
-(47, 16, 1),
-(48, 16, 0),
-(49, 17, 0),
-(50, 17, 1),
-(51, 17, 0);
+(52, 18, 0),
+(53, 18, 1),
+(54, 18, 0),
+(55, 18, 0),
+(56, 19, 0),
+(57, 19, 1),
+(58, 19, 0),
+(59, 20, 0),
+(60, 20, 1),
+(61, 20, 0),
+(62, 20, 0),
+(63, 21, 0),
+(64, 21, 1),
+(65, 21, 0),
+(66, 22, 1),
+(67, 22, 0),
+(68, 22, 0),
+(69, 23, 0),
+(70, 23, 1),
+(71, 23, 0),
+(72, 24, 0),
+(73, 24, 1),
+(74, 24, 0),
+(75, 25, 0),
+(76, 25, 0),
+(77, 25, 1),
+(78, 25, 0);
 
 -- --------------------------------------------------------
 
@@ -111,6 +87,17 @@ INSERT INTO `correspondre` (`ID_REPONSE`, `ID_QUESTION`, `CORRECT`) VALUES
 CREATE TABLE `crafter` (
   `ID_ARTEFACT` int(11) NOT NULL,
   `ID_ITEM` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `destiner`
+--
+
+CREATE TABLE `destiner` (
+  `ID_NOTIFICATION` int(11) NOT NULL,
+  `EMAIL_USER` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -151,16 +138,10 @@ CREATE TABLE `generer` (
 --
 
 INSERT INTO `generer` (`ID_MODULE`, `ID_QUIZ`) VALUES
-(1, 1),
-(2, 2),
-(3, 3),
-(4, 4),
-(5, 5),
-(6, 6),
-(7, 7),
-(8, 8),
-(9, 9),
-(10, 10);
+(11, 11),
+(12, 12),
+(13, 13),
+(14, 14);
 
 -- --------------------------------------------------------
 
@@ -190,7 +171,7 @@ CREATE TABLE `lecon` (
 --
 
 INSERT INTO `lecon` (`ID_LECON`, `NOM_LECON`, `TERMINE`) VALUES
-(1, 'Apprendre le java', 0);
+(2, 'Apprendre le node js', 0);
 
 -- --------------------------------------------------------
 
@@ -202,6 +183,7 @@ CREATE TABLE `module` (
   `ID_MODULE` int(11) NOT NULL,
   `NOM_MODULE` varchar(128) NOT NULL,
   `CONTENU_MODULE` varchar(128) NOT NULL,
+  `NIVEAU_MODULE` int(1) NOT NULL,
   `FINI` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -209,17 +191,25 @@ CREATE TABLE `module` (
 -- Déchargement des données de la table `module`
 --
 
-INSERT INTO `module` (`ID_MODULE`, `NOM_MODULE`, `CONTENU_MODULE`, `FINI`) VALUES
-(1, 'Planification et Réduction Délibérée du Scope (Scope Cut)', 'Pour finir un projet de jeu vidéo ambitieux en seulement 24 heures, la clé absolue est le \'scope cut\' (la réduction d\'ambition).', 0),
-(2, 'Gestion du Temps et Time-Boxing', 'Travailler pendant 24h requiert une discipline de fer. Divisez votre temps en blocs stricts (Time-boxing) : 2h de prototype, 8h ', 0),
-(3, 'Polish Express et \'Juiciness\'', 'Ce qui transforme un prototype ennuyeux en un jeu amusant en peu de temps, c\'est le \'Juiciness\' (les retours visuels et sonores)', 0),
-(4, 'Builds, Tests et Export d\'Urgence', 'N\'attendez jamais la dernière heure pour effectuer votre premier export (Build). Les moteurs de jeu (Unity, Unreal, Godot) renco', 0),
-(5, 'Préparation et physiologie de la nuit blanche', 'Pour tenir une nuit entière sans ressentir une fatigue écrasante, la préparation commence en amont. Il est crucial d\'accumuler u', 0),
-(6, 'Techniques de maintien de l\'éveil durant la nuit', 'Pendant la nuit, l\'environnement et vos habitudes dictent votre niveau d\'alerte. Exposez-vous à une lumière blanche ou bleue int', 0),
-(7, 'Gestion du lendemain et récupération', 'Le lendemain d\'une nuit blanche, le corps subit une baisse d\'énergie importante, souvent marquée au lever du jour et en milieu d', 0),
-(8, 'Introduction et Syntaxe de Base', 'Java est un langage de programmation orienté objet, fortement typé et exécuté sur la Machine Virtuelle Java (JVM). Dans ce modul', 0),
-(9, 'La Programmation Orientée Objet (POO)', 'La Programmation Orientée Objet est le cœur de Java. Ce module couvre la création de classes et d\'objets, l\'instanciation avec \'', 0),
-(10, 'Gestion des Exceptions et Collections', 'Pour écrire des applications robustes, vous devez savoir gérer les erreurs et structurer vos données. Ce module aborde le traite', 0);
+INSERT INTO `module` (`ID_MODULE`, `NOM_MODULE`, `CONTENU_MODULE`, `NIVEAU_MODULE`, `FINI`) VALUES
+(11, 'Introduction à Node.js et Installation', 'Node.js est un environnement d\'exécution JavaScript côté serveur, bâti sur le moteur V8 de Google Chrome. Il permet d\'exécuter d', 1, 0),
+(12, 'Le système de modules (CommonJS et ES Modules)', 'Node.js utilise un système de modules pour découper le code en fichiers réutilisables. Historiquement, Node.js utilise le format', 2, 0),
+(13, 'L\'Event Loop et l\'Asynchronisme', 'L\'Event Loop (boucle d\'événements) est le cœur de Node.js. Bien que Node.js s\'exécute sur un seul thread (mono-thread), l\'Event ', 3, 0),
+(14, 'Création d\'une API REST avec Express.js', 'Express est le framework web minimaliste et flexible le plus populaire pour Node.js. Il facilite la création de serveurs web, la', 4, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `notification`
+--
+
+CREATE TABLE `notification` (
+  `id_notification` int(11) NOT NULL,
+  `type_notification` varchar(50) NOT NULL,
+  `contenu_notification` varchar(255) NOT NULL,
+  `date_notification` date NOT NULL,
+  `EMAIL_USER` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -262,23 +252,14 @@ CREATE TABLE `question` (
 --
 
 INSERT INTO `question` (`ID_QUESTION`, `LIBELLE_QUESTION`) VALUES
-(1, 'Quelle est la priorité absolue dans un projet de jeu court (24h) ?'),
-(2, 'Que signifie faire un \'Scope Cut\' ?'),
-(3, 'Qu\'est-ce que le \'Feature Freeze\' ?'),
-(4, 'Lequel de ces éléments apporte du \'Juiciness\' rapidement ?'),
-(5, 'Quand faut-il faire le tout premier build de test ?'),
-(6, 'Quel type de repas est-il préférable d\'éviter avant une nuit blanche ?'),
-(7, 'Pourquoi l\'hydratation est-elle essentielle pour rester éveillé ?'),
-(8, 'Quel effet la lumière intense a-t-elle sur le corps pendant la nuit ?'),
-(9, 'Quelle est la durée idéale d\'une micro-sieste pour éviter l\'inertie du sommeil ?'),
-(10, 'Quelle est la meilleure action le matin suivant une nuit blanche ?'),
-(11, 'Comment réajuster son rythme de sommeil le soir suivant ?'),
-(12, 'Quel est le point d\'entrée principal d\'un programme Java ?'),
-(13, 'Quel type de données est utilisé pour stocker du texte en Java ?'),
-(14, 'Quel mot-clé permet à une classe d\'hériter d\'une autre classe en Java ?'),
-(15, 'À quoi sert le mot-clé \'this\' ?'),
-(16, 'Quelle interface du framework Collections n\'autorise pas les doublons ?'),
-(17, 'Quel bloc est exécuté indépendamment de la levée d\'une exception ?');
+(18, 'Quel moteur JavaScript est utilisé par Node.js ?'),
+(19, 'Node.js est principalement axé sur quel type de modèle d\'I/O ?'),
+(20, 'Quelle fonction est utilisée pour importer un module avec le système CommonJS ?'),
+(21, 'Comment exporte-t-on une valeur en CommonJS ?'),
+(22, 'Node.js exécute le code utilisateur sur combien de threads principaux ?'),
+(23, 'Quelle structure moderne permet de traiter l\'asynchronisme de manière lisible ?'),
+(24, 'Qu\'est-ce qu\'un middleware dans Express ?'),
+(25, 'Quelle méthode HTTP est généralement utilisée pour créer une nouvelle ressource ?');
 
 -- --------------------------------------------------------
 
@@ -296,16 +277,10 @@ CREATE TABLE `quiz` (
 --
 
 INSERT INTO `quiz` (`ID_QUIZ`, `TITRE_QUIZ`) VALUES
-(1, 'Quiz sur la gestion du Scope'),
-(2, 'Quiz sur le Time-Boxing'),
-(3, 'Quiz sur le Polish'),
-(4, 'Quiz sur le processus de Build'),
-(5, 'Quiz : La préparation avant la nuit blanche'),
-(6, 'Quiz : Rester éveillé pendant la nuit'),
-(7, 'Quiz : Récupération et gestion du lendemain'),
-(8, 'Quiz - Syntaxe de Base'),
-(9, 'Quiz - Concepts POO'),
-(10, 'Quiz - Exceptions et Collections');
+(11, 'Quiz sur les bases de Node.js'),
+(12, 'Quiz sur les Modules'),
+(13, 'Quiz sur l\'Event Loop et l\'asynchronisme'),
+(14, 'Quiz Express.js');
 
 -- --------------------------------------------------------
 
@@ -334,9 +309,10 @@ CREATE TABLE `regrouper` (
 --
 
 INSERT INTO `regrouper` (`ID_LECON`, `ID_MODULE`) VALUES
-(1, 8),
-(1, 9),
-(1, 10);
+(2, 11),
+(2, 12),
+(2, 13),
+(2, 14);
 
 -- --------------------------------------------------------
 
@@ -354,57 +330,33 @@ CREATE TABLE `reponse` (
 --
 
 INSERT INTO `reponse` (`ID_REPONSE`, `LIBELLE_REPONSE`) VALUES
-(1, 'Créer un scénario complexe avec plusieurs fins'),
-(2, 'Définir et isoler la boucle de gameplay minimale (MVP)'),
-(3, 'Concevoir des graphismes 4K haute fidélité'),
-(4, 'Supprimer des fonctionnalités non essentielles pour tenir les délais'),
-(5, 'Réduire la résolution d\'affichage du jeu'),
-(6, 'Augmenter la taille de l\'équipe de développement'),
-(7, 'Un bug qui gèle l\'écran de jeu'),
-(8, 'Le moment à partir duquel plus aucune fonctionnalité n\'est ajoutée'),
-(9, 'Une pause obligatoire de 2 heures pour l\'équipe'),
-(10, 'Un menu d\'options avec 50 paramètres'),
-(11, 'Du Screen Shake et des retours sonores immédiats'),
-(12, 'Un système de sauvegarde en ligne'),
-(13, '10 minutes avant la date limite'),
-(14, 'Dès les premières heures de développement'),
-(15, 'Uniquement une fois que tous les niveaux sont finis'),
-(16, 'Les repas lourds et riches en glucides simples'),
-(17, 'Les repas riches en protéines légères'),
-(18, 'Les légumes verts et les fibres'),
-(19, 'Elle remplace totalement le besoin physiologique de dormir'),
-(20, 'La déshydratation augmente la sensation de fatigue physique et mentale'),
-(21, 'Elle fait baisser la température corporelle pour favoriser le sommeil'),
-(22, 'Elle stimule la production de mélatonine'),
-(23, 'Elle bloque la sécrétion de mélatonine'),
-(24, 'Elle ralentit le rythme cardiaque'),
-(25, '10 à 20 minutes'),
-(26, '45 à 60 minutes'),
-(27, '90 minutes'),
-(28, 'Dormir 4 heures immédiatement au réveil'),
-(29, 'S\'exposer à la lumière naturelle du soleil'),
-(30, 'Prendre un bain chaud et rester au lit'),
-(31, 'Faire une autre nuit blanche pour compenser'),
-(32, 'Se coucher à une heure normale ou légèrement plus tôt'),
-(33, 'Consommer de la caféine tard en soirée'),
-(34, 'public static void main(String[] args)'),
-(35, 'public void start()'),
-(36, 'static void init()'),
-(37, 'char'),
-(38, 'String'),
-(39, 'Text'),
-(40, 'implements'),
-(41, 'extends'),
-(42, 'inherits'),
-(43, 'À faire référence à l\'instance courante de la classe'),
-(44, 'À créer une nouvelle instance'),
-(45, 'À appeler la classe parente'),
-(46, 'List'),
-(47, 'Set'),
-(48, 'Map'),
-(49, 'catch'),
-(50, 'finally'),
-(51, 'try');
+(52, 'SpiderMonkey'),
+(53, 'V8'),
+(54, 'Chakra'),
+(55, 'JavaScriptCore'),
+(56, 'Bloquant et synchrone'),
+(57, 'Non bloquant et asynchrone'),
+(58, 'Multi-threadé traditionnel'),
+(59, 'import()'),
+(60, 'require()'),
+(61, 'include()'),
+(62, 'fetch()'),
+(63, 'export default'),
+(64, 'module.exports'),
+(65, 'exports.send'),
+(66, '1 seul thread'),
+(67, '4 threads'),
+(68, 'Autant de threads que de cœurs CPU'),
+(69, 'Les boucles for-in'),
+(70, 'async / await'),
+(71, 'Les événements synchrones'),
+(72, 'Une base de données intégrée'),
+(73, 'Une fonction qui a accès aux objets requete (req) et reponse (res)'),
+(74, 'Un compilateur JavaScript'),
+(75, 'GET'),
+(76, 'PUT'),
+(77, 'POST'),
+(78, 'DELETE');
 
 -- --------------------------------------------------------
 
@@ -459,23 +411,14 @@ CREATE TABLE `utiliser` (
 --
 
 INSERT INTO `utiliser` (`ID_QUESTION`, `ID_QUIZ`) VALUES
-(1, 1),
-(2, 1),
-(3, 2),
-(4, 3),
-(5, 4),
-(6, 5),
-(7, 5),
-(8, 6),
-(9, 6),
-(10, 7),
-(11, 7),
-(12, 8),
-(13, 8),
-(14, 9),
-(15, 9),
-(16, 10),
-(17, 10);
+(18, 11),
+(19, 11),
+(20, 12),
+(21, 12),
+(22, 13),
+(23, 13),
+(24, 14),
+(25, 14);
 
 --
 -- Index pour les tables déchargées
@@ -503,6 +446,14 @@ ALTER TABLE `crafter`
   ADD PRIMARY KEY (`ID_ARTEFACT`,`ID_ITEM`),
   ADD KEY `I_FK_CRAFTER_ARTEFACT` (`ID_ARTEFACT`),
   ADD KEY `I_FK_CRAFTER_ITEM` (`ID_ITEM`);
+
+--
+-- Index pour la table `destiner`
+--
+ALTER TABLE `destiner`
+  ADD PRIMARY KEY (`ID_NOTIFICATION`,`EMAIL_USER`),
+  ADD KEY `I_DESTINER_NOTIFICATION` (`ID_NOTIFICATION`),
+  ADD KEY `I_FK_DESTINER_USER` (`EMAIL_USER`);
 
 --
 -- Index pour la table `donner`
@@ -545,6 +496,13 @@ ALTER TABLE `lecon`
 --
 ALTER TABLE `module`
   ADD PRIMARY KEY (`ID_MODULE`);
+
+--
+-- Index pour la table `notification`
+--
+ALTER TABLE `notification`
+  ADD PRIMARY KEY (`id_notification`),
+  ADD KEY `I_FK_NOTIFICATION_USER` (`EMAIL_USER`) USING BTREE;
 
 --
 -- Index pour la table `participer`
@@ -645,31 +603,37 @@ ALTER TABLE `item`
 -- AUTO_INCREMENT pour la table `lecon`
 --
 ALTER TABLE `lecon`
-  MODIFY `ID_LECON` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID_LECON` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `module`
 --
 ALTER TABLE `module`
-  MODIFY `ID_MODULE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `ID_MODULE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT pour la table `notification`
+--
+ALTER TABLE `notification`
+  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `question`
 --
 ALTER TABLE `question`
-  MODIFY `ID_QUESTION` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `ID_QUESTION` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT pour la table `quiz`
 --
 ALTER TABLE `quiz`
-  MODIFY `ID_QUIZ` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `ID_QUIZ` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT pour la table `reponse`
 --
 ALTER TABLE `reponse`
-  MODIFY `ID_REPONSE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `ID_REPONSE` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- Contraintes pour les tables déchargées
