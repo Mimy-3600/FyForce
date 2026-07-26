@@ -1,6 +1,33 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
+import Learning from "./components/Learning";
+
+//Mock Data
+const initialLessons = [
+  {
+    id: 1,
+    title: "Apprendre Javascript",
+    modules: [
+      { id: 101, title: "Module 1: Tache 1", completed: false },
+      { id: 102, title: "Module 2: Tache 2", completed: false } //vue actuelle
+    ]
+  },{
+    id: 2,
+    title: "Faire le projet C#",
+    modules: [
+      { id: 101, title: "Module 1: Tache 1", completed: false },
+      { id: 102, title: "Module 2: Tache 2", completed: false } //vue actuelle
+    ]
+  },{
+    id: 3,
+    title: "Apprendre Java",
+    modules: [
+      { id: 101, title: "Module 1: Tache 1", completed: false },
+      { id: 102, title: "Module 2: Tache 2", completed: false } //vue actuelle
+    ]
+  }
+];
 import LeaderBoard from "./components/Leaderboard/LeaderBoard";
 import Header from "./components/shared/Header";
 import Path from "./views/Path";
@@ -12,30 +39,36 @@ const Contact = () => <div>Contact</div>;
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [currentView, setCurrentView] = useState('login');
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    setShowWelcome(true);
+    setCurrentView('welcome');
   };
 
   // Minuteur de 1 seconde pour le message d'accueil
   useEffect(() => {
-    if (showWelcome) {
+    if (currentView === 'welcome') {
       const timer = setTimeout(() => {
+        setCurrentView('learning');
         setShowWelcome(false);
         setUser(null);
       }, 1000);
-
-      return () => clearTimeout(timer);
+      return ()=> clearTimeout(timer);
     }
-  }, [showWelcome]);
+  }, [currentView]);
 
   return (
+    <main style={styles.container}>
+      {currentView === 'login' && (
+        <Login onLoginSuccess={handleLoginSuccess}/>
+      )}
+
+      {currentView === 'welcome' && (
     <main >
         <Header/>
 
-      {/* Affichage du message de bienvenue ou du formulaire
+      {/* Affichage du message de bienvenue ou du formulaire*/}
       {showWelcome ? (
         <div className="glass-card" style={styles.welcomeCard}>
           <div className="auth-header">
@@ -43,6 +76,11 @@ export default function App() {
             <p className="auth-subtitle">Identifiant : {user?.email}</p>
           </div>
         </div>
+      )}
+
+      {currentView === 'learning' && (
+        <Learning lessonsData={initialLessons} />
+      )}
       ) : (
         <Login onLoginSuccess={handleLoginSuccess} />
       )} */}
@@ -58,6 +96,23 @@ export default function App() {
 }
 
 const styles = {
+  loginContainer: {
+    minHeight: '100vh',
+    width: '100%',
+    backgroundColor: 'var(--bg-primary)', 
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+    color: '#f9fafb',
+  },
+  
+  learningContainer: {
+    minHeight: '100vh',
+    width: '100%',
+    backgroundColor: 'var(--bg-primary)', 
+    padding: '2rem',
+    color: '#f9fafb',
   container: {
     minHeight: "100vh",
     width: "100%",
