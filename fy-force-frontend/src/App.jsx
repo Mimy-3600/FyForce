@@ -1,7 +1,7 @@
-import Path from "./views/Path";
+import Home from "./views/Home";
 
 function App() {
-  return <Path />
+  return <Home />
 }
 
 export default App;

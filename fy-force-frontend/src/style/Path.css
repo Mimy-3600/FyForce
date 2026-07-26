@@ -20,7 +20,6 @@
 }
 
 .path-container {
-	background-color: #fccc54;
 	width: calc(100% - 40px);
 	height: calc(100% - 40px);
 	border-radius: 10px;
